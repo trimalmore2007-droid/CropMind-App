@@ -1,32 +1,36 @@
 // ═══════════════════════════════════════════════════
-// CropMind Backend Server
+// CropMind Backend Server (Express Version)
 // Run: node server.js
 // Opens at: http://localhost:3000
 // ═══════════════════════════════════════════════════
 
-const http = require("http");
-const fs = require("fs");
+
+require("dotenv").config();
+
+// 💡 Yeh line check karegi ki key load hui ya nahi
+console.log("🔑 Gemini API Key Status:", process.env.GEMINI_API_KEY ? "Loaded Successfully ✅" : "NOT Found in .env ❌");
+
+const express = require("express");
+const cors = require("cors");
 const path = require("path");
 const https = require("https");
-const url = require("url");
+const http = require("http");
 
-// const PORT = 3000;
+const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 
-// ── MIME TYPES ─────
-const MIME = {
-  ".html": "text/html",
-  ".css": "text/css",
-  ".js": "application/javascript",
-  ".json": "application/json",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".ico": "image/x-icon",
-};
+// ── MIDDLEWARE SETUP ─────────────────────────────────
+app.use(cors());
+// Image payload base64 me aata hai isliye 50mb limit rakhi hai
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// Static files (HTML, CSS, JS) serve karne ke liye
+app.use(express.static(PUBLIC_DIR));
 
 // ── GLOBAL MEMORY CACHE FOR WORKING MODEL ────────────
-let cachedWorkingModel = "gemini-flash-lite-latest"; // Set to the working model from your log
+let cachedWorkingModel = "gemini-flash-lite-latest";
 
 // ── SMART GEMINI API PROXY ────────────────────────────
 function callGeminiAPI(apiKey, body, callback) {
@@ -39,7 +43,6 @@ function callGeminiAPI(apiKey, body, callback) {
     }
   };
 
-  // Step 1: Fetch all available models from Google API
   const listOptions = {
     hostname: "generativelanguage.googleapis.com",
     path: `/v1beta/models?key=${apiKey}`,
@@ -57,7 +60,6 @@ function callGeminiAPI(apiKey, body, callback) {
           return safeCallback(null, parsedList);
         }
 
-        // Filter valid content generation models
         let validModels = (parsedList.models || [])
           .filter((m) =>
             m.supportedGenerationMethods?.includes("generateContent"),
@@ -81,7 +83,6 @@ function callGeminiAPI(apiKey, body, callback) {
           });
         }
 
-        // PRIORITY ORDER: Put working models for your free quota at the absolute top!
         const priorityOrder = [
           "gemini-flash-lite-latest",
           "gemini-1.5-flash",
@@ -90,7 +91,6 @@ function callGeminiAPI(apiKey, body, callback) {
           "gemini-2.0-flash-lite",
         ];
 
-        // If we already know a model works, force it to Index 0
         if (cachedWorkingModel) {
           validModels = validModels.filter((m) => m !== cachedWorkingModel);
           validModels.unshift(cachedWorkingModel);
@@ -109,7 +109,6 @@ function callGeminiAPI(apiKey, body, callback) {
           });
         }
 
-        // Step 2: Sequentially try models starting from Index 0
         function tryNextModel(index) {
           if (hasResponded) return;
 
@@ -152,14 +151,13 @@ function callGeminiAPI(apiKey, body, callback) {
                   console.log(
                     `  ⚠️ Model ${model} error: ${parsedData.error.message}`,
                   );
-                  // If cached model failed, clear cache
                   if (cachedWorkingModel === model) cachedWorkingModel = null;
                   tryNextModel(index + 1);
                 } else {
                   console.log(
                     `  ✅ Model ${model} succeeded! Saved as default.`,
                   );
-                  cachedWorkingModel = model; // Cache this working model!
+                  cachedWorkingModel = model;
                   safeCallback(null, parsedData);
                 }
               } catch (e) {
@@ -295,193 +293,130 @@ function fetchFallbackIP(callback) {
     .on("error", callback);
 }
 
-// ── PARSE REQUEST BODY ────────────────────────────────
-function parseBody(req, callback) {
-  let body = "";
-  req.on("data", (chunk) => (body += chunk));
-  req.on("end", () => {
-    try {
-      callback(JSON.parse(body));
-    } catch (e) {
-      callback({});
-    }
+
+
+
+
+
+
+
+// ── API ROUTES ────────────────────────────────────────
+
+// POST /api/diagnose
+app.post("/api/diagnose", (req, res) => {
+  // Pehle request body se key dekho, nahi mili toh .env file se uthao
+  const apiKey = req.body.apiKey || process.env.GEMINI_API_KEY;
+  const { prompt, imageBase64, mimeType, selectedCrop } = req.body;
+
+  if (!apiKey) {
+    return res.status(400).json({ error: "API key required in .env or request body" });
+  }
+
+  const parts = [];
+  if (imageBase64) {
+    parts.push({
+      inline_data: {
+        mime_type: mimeType || "image/jpeg",
+        data: imageBase64,
+      },
+    });
+  }
+  parts.push({
+    text:
+      prompt || "Identify the disease in this crop image and suggest remedies.",
   });
-}
 
-// ── MAIN SERVER ───────────────────────────────────────
-const server = http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  console.log("📊 Running diagnosis for crop:", selectedCrop || "unknown");
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    res.writeHead(200);
-    res.end();
-    return;
-  }
-
-  // POST /api/diagnose
-  if (pathname === "/api/diagnose" && req.method === "POST") {
-    parseBody(req, (body) => {
-      const { apiKey, prompt, imageBase64, mimeType } = body;
-      if (!apiKey) {
-        if (!res.headersSent) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "API key required" }));
-        }
-        return;
-      }
-      const parts = [];
-      if (imageBase64) {
-        parts.push({
-          inline_data: {
-            mime_type: mimeType || "image/jpeg",
-            data: imageBase64,
-          },
-        });
-      }
-      parts.push({
-        text:
-          prompt ||
-          "Identify the disease in this crop image and suggest remedies.",
-      });
-      console.log(
-        "📊 Running diagnosis for crop:",
-        body.selectedCrop || "unknown",
-      );
-
-      callGeminiAPI(apiKey, { contents: [{ parts }] }, (err, data) => {
-        if (res.headersSent) return;
-        res.writeHead(200, { "Content-Type": "application/json" });
-        if (err) {
-          console.log("❌ Diagnosis error:", err.message);
-          res.end(JSON.stringify({ geminiError: err.message }));
-        } else if (data && data.error) {
-          console.log("❌ Gemini error:", data.error.message);
-          res.end(
-            JSON.stringify({
-              geminiError: data.error.message,
-              code: data.error.code,
-            }),
-          );
-        } else {
-          console.log("✅ Diagnosis successful");
-          res.end(JSON.stringify(data));
-        }
-      });
-    });
-    return;
-  }
-
-  // POST /api/chat
-  if (pathname === "/api/chat" && req.method === "POST") {
-    parseBody(req, (body) => {
-      const { apiKey, message, lang } = body;
-      if (!apiKey) {
-        if (!res.headersSent) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "API key required" }));
-        }
-        return;
-      }
-      const langName =
-        { mr: "Marathi", hi: "Hindi", ta: "Tamil", en: "English" }[lang] ||
-        "Marathi";
-      const prompt = `You are a helpful Indian agriculture expert. Answer in ${langName} only. Under 120 words. Practical advice. Question: ${message}`;
-      callGeminiAPI(
-        apiKey,
-        { contents: [{ parts: [{ text: prompt }] }] },
-        (err, data) => {
-          if (res.headersSent) return;
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(
-            JSON.stringify(
-              err
-                ? { error: err.message }
-                : data.error
-                  ? { geminiError: data.error.message }
-                  : data,
-            ),
-          );
-        },
-      );
-    });
-    return;
-  }
-
-  // GET /api/weather
-  if (pathname === "/api/weather" && req.method === "GET") {
-    const { lat, lon } = parsedUrl.query;
-    if (!lat || !lon) {
-      if (!res.headersSent) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "lat and lon required" }));
-      }
-      return;
-    }
-    fetchWeather(lat, lon, (err, data) => {
-      if (res.headersSent) return;
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(err ? { error: err.message } : data));
-    });
-    return;
-  }
-
-  // GET /api/city
-  if (pathname === "/api/city" && req.method === "GET") {
-    const { lat, lon } = parsedUrl.query;
-    getCity(lat, lon, (err, city) => {
-      if (res.headersSent) return;
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ city: city || "India" }));
-    });
-    return;
-  }
-
-  // GET /api/location
-  if (pathname === "/api/location" && req.method === "GET") {
-    getIPLocation((err, data) => {
-      if (res.headersSent) return;
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(err ? { error: err.message } : data));
-    });
-    return;
-  }
-
-  // Serve static files
-  let filePath = path.join(
-    PUBLIC_DIR,
-    pathname === "/" ? "index.html" : pathname,
-  );
-  const ext = path.extname(filePath);
-  const contentType = MIME[ext] || "text/plain";
-
-  fs.readFile(filePath, (err, data) => {
-    if (res.headersSent) return;
+  callGeminiAPI(apiKey, { contents: [{ parts }] }, (err, data) => {
     if (err) {
-      fs.readFile(path.join(PUBLIC_DIR, "index.html"), (err2, data2) => {
-        if (err2) {
-          res.writeHead(404);
-          res.end("Not found");
-          return;
-        }
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(data2);
-      });
-      return;
+      console.log("❌ Diagnosis error:", err.message);
+      return res.json({ geminiError: err.message });
     }
-    res.writeHead(200, { "Content-Type": contentType });
-    res.end(data);
+    if (data && data.error) {
+      console.log("❌ Gemini error:", data.error.message);
+      return res.json({
+        geminiError: data.error.message,
+        code: data.error.code,
+      });
+    }
+    console.log("✅ Diagnosis successful");
+    res.json(data);
   });
 });
 
-server.listen(PORT, () => {
+// POST /api/chat
+app.post("/api/chat", (req, res) => {
+  // Request body se key dekho, nahi toh .env se GEMINI_API_KEY use karo
+  const apiKey = req.body.apiKey || process.env.GEMINI_API_KEY;
+  const { message, lang } = req.body;
+
+  if (!apiKey) {
+    return res.status(400).json({ error: "API key required in .env or request body" });
+  }
+
+  const langName =
+    { mr: "Marathi", hi: "Hindi", ta: "Tamil", en: "English" }[lang] ||
+    "Marathi";
+  const promptText = `You are a helpful Indian agriculture expert. Answer in ${langName} only. Under 120 words. Practical advice. Question: ${message}`;
+
+  callGeminiAPI(
+    apiKey,
+    { contents: [{ parts: [{ text: promptText }] }] },
+    (err, data) => {
+      if (err) return res.json({ error: err.message });
+      if (data.error) return res.json({ geminiError: data.error.message });
+      res.json(data);
+    },
+  );
+});
+
+// GET /api/weather (No API Key Required - Uses Open-Meteo)
+app.get("/api/weather", (req, res) => {
+  const { lat, lon } = req.query;
+  if (!lat || !lon) {
+    return res.status(400).json({ error: "lat and lon required" });
+  }
+  fetchWeather(lat, lon, (err, data) => {
+    if (err) return res.json({ error: err.message });
+    res.json(data);
+  });
+});
+
+// GET /api/city (No API Key Required - Uses OpenStreetMap)
+app.get("/api/city", (req, res) => {
+  const { lat, lon } = req.query;
+  getCity(lat, lon, (err, city) => {
+    res.json({ city: city || "India" });
+  });
+});
+
+// GET /api/location (No API Key Required - Uses IP-API)
+app.get("/api/location", (req, res) => {
+  getIPLocation((err, data) => {
+    if (err) return res.json({ error: err.message });
+    res.json(data);
+  });
+});
+
+// Fallback route: Baki saare URLs ke liye index.html bhej do (Express 5 Syntax)
+app.use((req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+});
+
+
+
+
+
+
+
+
+
+// ── START SERVER ──────────────────────────────────────
+app.listen(PORT, () => {
   console.log("");
   console.log("🌾 ═══════════════════════════════════════");
-  console.log("   CropMind Server Running!");
+  console.log("   CropMind Server Running with Express!");
   console.log(`   Open: http://localhost:3000`);
   console.log("🌾 ═══════════════════════════════════════");
   console.log("");

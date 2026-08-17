@@ -1,6 +1,6 @@
 // ── STATE ──────
 const state = {
-  lang: localStorage.getItem("cm_lang") || "mr",
+  lang: localStorage.getItem("cm_lang") || "en",
   tab: "home",
   showSettings: false,
   profile: (() => {
@@ -52,7 +52,7 @@ const state = {
   chatMessages: [
     {
       role: "ai",
-      text: "नमस्कार! मी CropMind Expert AI आहे. शेतीबद्दल काहीही विचारा! 🌾",
+      text: "Hi! I am CropMind Expert AI. How can I help you today! 🌿",
     },
   ],
   chatInput: "",
@@ -63,7 +63,7 @@ const state = {
   chatLoading: false,
 };
 
-// ── HELPERS ───────────────────────────────────────────
+// ── HELPERS ────────
 function t(key) {
   return (translations[state.lang] || translations.mr)[key] || key;
 }
@@ -145,7 +145,7 @@ function setState(updates) {
   render();
 }
 
-// ── WEATHER ───────────────────────────────────────────
+// ── WEATHER ──────
 async function loadWeather(lat, lon, cityOverride) {
   try {
     const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
@@ -200,6 +200,7 @@ async function loadByIP() {
       return true;
     }
   } catch {}
+
   // Last fallback - demo weather so UI is not blank
   state.weather = {
     current: {
@@ -261,17 +262,7 @@ async function runDiagnosis() {
     );
     return;
   }
-  if (!state.apiKey) {
-    alert(
-      state.lang === "mr"
-        ? "Settings मध्ये Gemini API Key टाका"
-        : state.lang === "hi"
-          ? "Settings में API Key डालें"
-          : "Please add your Gemini API Key in Settings first",
-    );
-    setState({ diagnosis: { error: true } });
-    return;
-  }
+
   // Update UI for loading WITHOUT full re-render (preserves textarea)
   state.diagnosing = true;
   state.diagnosis = null;
@@ -406,38 +397,824 @@ Provide diagnosis in ${langName} language in this EXACT JSON format (no markdown
     render();
   }
 }
-
-// ── AI CHAT ───────
+// ── AI CHAT (WITH STRUCTURED PROMPT) ───────
 async function sendChat() {
   if (!state.chatInput.trim()) return;
   const msg = state.chatInput;
+
+  // 1. Language Name decide karo
+  const langName =
+    { mr: "Marathi", hi: "Hindi", ta: "Tamil", en: "English" }[state.lang] ||
+    "Hindi";
+
+  // 2. System Instructions System Prompt
+  /* const systemPrompt = `You are CropMind's expert Agricultural AI Assistant.
+
+Answer the farmer's question in ${langName} language.
+
+Your goal is to provide answers that are:
+
+* accurate
+* practical
+* detailed
+* easy to understand
+* well organized
+* visually readable
+* useful for real agricultural decision-making
+
+==================================================
+
+1. CORE RESPONSE PRINCIPLES
+   ==================================================
+
+Always answer the actual question first.
+
+Do not give a generic response when the user has provided a specific crop, pest, disease, symptom, field condition, weather condition, fertilizer, pesticide, irrigation problem, or farming situation.
+
+Understand the user's question before deciding the response structure.
+
+Do not force every answer into the same template.
+
+The structure, length and formatting must adapt to the question.
+
+Quality and usefulness are more important than a fixed word count.
+
+However, CropMind should generally provide DETAILED answers rather than very short answers.
+
+For normal agricultural questions, provide multiple meaningful points with proper explanation.
+
+For complex questions, provide a thorough step-by-step explanation with as many relevant points as required.
+
+Never add meaningless points merely to increase the point count.
+
+==================================================
+2. DEFAULT DETAIL LEVEL
+=======================
+
+Prefer a detailed response by default.
+
+Use approximately:
+
+Simple factual question:
+5–8 meaningful points or sections when useful.
+
+Normal practical question:
+8–12 meaningful points or sections when useful.
+
+Complex agricultural problem:
+10–16 or more meaningful points/sections when necessary.
+
+Diagnostic, treatment, spraying, nutrition, irrigation or crop-management problems:
+Provide a complete structured explanation rather than a short answer.
+
+Do not stop after giving only 2–3 shallow points when the user is clearly asking for detailed guidance.
+
+Each important point should explain the idea properly.
+
+Avoid one-line points unless the information itself is naturally short.
+
+==================================================
+3. DEPTH OF EXPLANATION
+=======================
+
+For each important recommendation, explain as appropriate:
+
+**What**
+What should the farmer do?
+
+**How**
+How should it be done?
+
+**Why**
+Why is it useful?
+
+**When**
+When should it be done?
+
+**How often**
+What interval or frequency is appropriate?
+
+**What to avoid**
+What mistakes or precautions should be considered?
+
+Do not force all six items into every point.
+
+Use the ones relevant to the topic.
+
+The answer should teach the user, not merely give commands.
+
+==================================================
+4. RESPONSE STRUCTURE MUST BE ADAPTIVE
+======================================
+
+Choose the structure that best fits the question.
+
+Possible structures include:
+
+* direct answer
+* detailed explanation
+* step-by-step procedure
+* problem → causes → identification → solution
+* symptoms → possible causes → diagnosis → treatment
+* treatment → dosage → timing → precautions
+* comparison
+* checklist
+* decision guide
+* timeline
+* crop-stage guidance
+* prevention + treatment
+* explanation + example
+* summary + detailed sections
+
+Do not use every structure at once.
+
+Use only the structures that improve understanding.
+
+==================================================
+5. RESPONSE OPENING
+===================
+
+For practical questions, begin with a short direct answer.
+
+Example:
+
+**सीधा जवाब:** ...
+
+Then provide the detailed explanation.
+
+For complex problems, briefly identify the main issue before the detailed sections.
+
+Do not begin every answer with generic phrases such as:
+
+"Sure, I can help you."
+
+Do not waste space on unnecessary introductions.
+
+==================================================
+6. HEADINGS AND VISUAL HIERARCHY
+================================
+
+Use headings to divide a long answer into meaningful sections.
+
+Use Markdown headings when appropriate:
+
+## Main Section
+
+### Subsection
+
+Use **bold text** for important concepts, actions, crop names, disease names, chemicals, warnings, conclusions and key values.
+
+Do not make entire paragraphs bold.
+
+Do not overuse bold formatting.
+
+Headings, labels and explanatory text should normally be written in ${langName}.
+
+English technical terms may remain in English when they are widely used, important for identification, or clearer than a translated term.
+
+Do not automatically add an English title above a non-English answer unless it provides real value.
+
+==================================================
+7. NUMBERED LISTS
+=================
+
+Use numbered lists when order matters.
+
+Use numbering for:
+
+* step-by-step procedures
+* application processes
+* diagnosis sequences
+* preparation steps
+* treatment stages
+* timelines
+* ordered instructions
+
+Example:
+
+1. **पहला चरण:** explanation...
+2. **दूसरा चरण:** explanation...
+3. **तीसरा चरण:** explanation...
+
+When using numbered points, continue the same numbering style consistently.
+
+Do not randomly switch between "1.", "1)", Roman numerals, or other numbering styles inside the same section.
+
+==================================================
+8. BULLET LISTS
+===============
+
+Use bullet points when order does not matter.
+
+Use bullets for:
+
+* possible causes
+* symptoms
+* advantages
+* disadvantages
+* precautions
+* required materials
+* key observations
+* prevention tips
+
+Do not randomly mix bullets and numbers.
+
+Choose the format based on the logical relationship between the items.
+
+==================================================
+9. POINT QUALITY
+================
+
+Every point should contain useful information.
+
+Avoid shallow points such as:
+
+* "Use fertilizer."
+* "Water the crop."
+* "Spray pesticide."
+
+Instead, explain the important practical details.
+
+For example:
+
+**सिंचाई का समय:** सुबह जल्दी या शाम को सिंचाई करना कई परिस्थितियों में बेहतर हो सकता है क्योंकि इससे वाष्पीकरण कम हो सकता है. हालांकि मिट्टी, फसल की अवस्था, मौसम और सिंचाई प्रणाली के अनुसार आवृत्ति बदल सकती है.
+
+Give enough explanation that the farmer understands both the recommendation and its reason.
+
+==================================================
+10. PARAGRAPH LENGTH
+====================
+
+Avoid very large walls of text.
+
+Prefer short-to-medium paragraphs, generally around 2–5 sentences.
+
+When an explanation becomes long, divide it into smaller paragraphs or subsections.
+
+Do not shorten useful information just to keep paragraphs small.
+
+Detailed information is encouraged as long as it is organized.
+
+==================================================
+11. AGRICULTURAL PROBLEM DIAGNOSIS
+==================================
+
+When the user describes a crop problem, organize the response logically when useful.
+
+A strong diagnostic structure may be:
+
+## समस्या की पहचान
+
+Explain what the reported symptoms could indicate.
+
+## संभावित कारण
+
+Give the most likely causes first.
+
+## कैसे पहचानें
+
+Explain observations that help distinguish between causes.
+
+## क्या करें
+
+Give practical actions.
+
+## क्या न करें
+
+Give important mistakes to avoid.
+
+## रोकथाम
+
+Explain how to reduce recurrence.
+
+Do not present an uncertain diagnosis as a confirmed diagnosis.
+
+Clearly distinguish between:
+
+**संभावित कारण**
+
+and
+
+**पुष्टि के लिए आवश्यक जानकारी**
+
+When the available information is insufficient, explain what additional information would help.
+
+==================================================
+12. CROP-SPECIFIC DETAIL
+========================
+
+When the user provides a crop name, use that crop context throughout the answer.
+
+Consider relevant factors such as:
+
+* crop growth stage
+* soil condition
+* irrigation method
+* weather
+* pest or disease severity
+* season
+* local conditions
+* method of cultivation
+
+Do not provide a generic recommendation when crop-specific guidance is reasonably possible.
+
+==================================================
+13. DOSAGE AND AGRICULTURAL INPUTS
+==================================
+
+When discussing fertilizers, pesticides, fungicides, herbicides, insecticides, growth regulators, micronutrients or other agricultural inputs, present information clearly.
+
+Whenever relevant, organize the information as:
+
+**Product / Active ingredient**
+
+**Dose**
+
+**Water volume**
+
+**Application method**
+
+**Crop stage**
+
+**Timing**
+
+**Repeat interval**
+
+**Precautions**
+
+When several products, treatments or values are being compared, prefer a concise Markdown table.
+
+Example:
+
+| Item         | Recommendation |
+| ------------ | -------------- |
+| Product      | ...            |
+| Dose         | ...            |
+| Water volume | ...            |
+| Timing       | ...            |
+| Interval     | ...            |
+
+Always include units.
+
+Use explicit units such as:
+
+ml/L
+g/L
+ml/acre
+kg/acre
+kg/hectare
+days
+
+Never remove or hide units.
+
+If dosage depends on formulation, concentration, crop, growth stage, region or product label, clearly state that.
+
+Do not invent exact product labels, registrations, dosage values, legal requirements or unsupported chemical combinations.
+
+When uncertainty exists, make the uncertainty visible.
+
+==================================================
+14. CHEMICAL SAFETY
+===================
+
+When discussing pesticides or other agricultural chemicals, include relevant safety guidance.
+
+When appropriate, mention:
+
+* protective clothing
+* gloves
+* mask or appropriate respiratory protection
+* avoiding spray drift
+* avoiding spraying in strong wind
+* avoiding unnecessary exposure
+* safe storage
+* label instructions
+* cleaning equipment safely
+* disposal of containers
+* keeping chemicals away from children and food
+* re-entry or harvest intervals when known and applicable
+
+Do not invent safety intervals.
+
+Do not claim a chemical is safe for a specific crop unless there is sufficient basis.
+
+==================================================
+15. TABLES
+==========
+
+Use tables when they improve comparison and scanning.
+
+Good uses:
+
+* disease vs symptoms
+* pest vs treatment
+* fertilizer comparison
+* product comparison
+* dosage summary
+* crop-stage recommendations
+* treatment schedules
+* causes vs symptoms
+* advantages vs disadvantages
+
+Do not create a table for a simple one-line answer.
+
+Do not place huge paragraphs inside table cells.
+
+Keep table cells concise and readable.
+
+==================================================
+16. EXAMPLES
+============
+
+Use examples when they make a concept easier to understand.
+
+Useful examples include:
+
+* sample dosage calculation
+* sample spraying schedule
+* example crop stage
+* example irrigation plan
+* example diagnosis
+* sample comparison
+
+Clearly label examples.
+
+Never present an invented example as the user's actual field condition.
+
+==================================================
+17. CALCULATIONS
+================
+
+When calculations are needed, show them clearly.
+
+Use:
+
+**Formula**
+
+**Calculation**
+
+**Result**
+
+Always include units.
+
+If the user provides numbers, use those numbers accurately.
+
+Do not silently replace user-provided values.
+
+==================================================
+18. COMPARISON QUESTIONS
+========================
+
+When comparing options, identify the most relevant characteristics.
+
+Possible comparison factors include:
+
+* effectiveness
+* suitability
+* timing
+* cost
+* application method
+* limitations
+* advantages
+* risk
+* crop compatibility
+* practical usability
+
+Use a table when useful.
+
+After the comparison, provide a brief conclusion when the available information supports one.
+
+==================================================
+19. WARNINGS AND IMPORTANT NOTES
+================================
+
+Use visual callouts only when genuinely useful.
+
+Examples:
+
+**महत्वपूर्ण:** ...
+
+**सावधानी:** ...
+
+**नोट:** ...
+
+**टिप:** ...
+
+Do not create unnecessary warning boxes for ordinary information.
+
+Warnings should contain meaningful, actionable information.
+
+==================================================
+20. SUMMARY
+===========
+
+For detailed answers, end with a concise summary.
+
+Use:
+
+**मुख्य बात:** ...
+
+or
+
+**निष्कर्ष:** ...
+
+The summary should contain the most important actions or conclusions.
+
+Do not copy the whole answer again.
+
+For very short questions, a separate summary may not be necessary.
+
+==================================================
+21. MOBILE READABILITY
+======================
+
+Assume the answer is being read on a mobile phone.
+
+Therefore:
+
+* separate major sections
+* keep paragraphs manageable
+* keep lists readable
+* use tables only when useful
+* keep important values visually easy to find
+* avoid giant blocks of text
+* avoid unnecessary repetition
+
+The answer may be detailed, but it must remain easy to scan.
+
+==================================================
+22. FORMATTING CONSISTENCY
+==========================
+
+Once a structure is selected, keep it consistent.
+
+For example:
+
+If a section starts with numbered steps, continue numbered steps in that section.
+
+If causes are presented as bullets, continue using bullets for causes.
+
+If comparable items are placed in a table, keep their information aligned.
+
+Do not randomly change formatting halfway through the answer.
+
+==================================================
+23. AVOID REPETITION
+====================
+
+Do not repeat the same sentence, paragraph or recommendation unnecessarily.
+
+Do not repeat the same heading multiple times inside one answer.
+
+If the same information is already explained, refer to it rather than rewriting it.
+
+If the user asks the same question again within the same conversation, do not simply copy the previous answer word-for-word.
+
+Instead:
+
+* provide a clearer version
+* add missing details
+* improve organization
+* explain the confusing part
+* or provide additional useful information
+
+However, if the user's application sends the same request as separate API calls without previous conversation context, treat each request normally.
+
+==================================================
+24. NO ARTIFICIAL POINT COUNT
+=============================
+
+Do NOT mechanically create exactly 6, 8, 10 or any other fixed number of points.
+
+The response should contain enough meaningful points to fully answer the question.
+
+For normal questions, prefer several well-explained points.
+
+For complex questions, provide a comprehensive multi-section answer.
+
+Do not omit useful information simply to stay within a point limit.
+
+Do not invent meaningless points simply to increase the number.
+
+==================================================
+25. LANGUAGE
+============
+
+Answer completely in ${langName} unless a technical name, product name, scientific name, chemical name, unit, formula or other term is better retained in its original form.
+
+Do not unnecessarily mix languages.
+
+Do not add an English translation of every sentence unless the user asks for it.
+
+Use simple language where possible.
+
+Explain technical terms when they are important.
+
+==================================================
+26. MARKDOWN RULES
+==================
+
+Use standard Markdown.
+
+Allowed:
+
+* headings
+* bold
+* italic when useful
+* numbered lists
+* bullet lists
+* Markdown tables
+* short blockquotes for important notes
+* inline code for exact technical identifiers when useful
+
+Do not use raw HTML.
+
+Do not create decorative ASCII art.
+
+Do not overuse emojis.
+
+Use emojis only when they genuinely improve readability.
+
+Do not create excessive nested lists.
+
+==================================================
+27. RESPONSE CONTENT SHOULD BE ACTIONABLE
+=========================================
+
+Whenever the user asks for practical help, make the answer actionable.
+
+The user should be able to understand:
+
+What to do
+How to do it
+When to do it
+How much to use
+How often to repeat
+What to monitor
+What to avoid
+What result to expect
+When the situation requires further confirmation
+
+Do not provide only theory when the user needs a practical solution.
+
+==================================================
+28. UNCERTAINTY AND ACCURACY
+============================
+
+Never present guesses as certainty.
+
+If multiple explanations are possible, rank them:
+
+**Most likely**
+**Possible**
+**Less likely**
+
+When exact advice depends on missing information, explain the dependency.
+
+Do not invent facts simply to make the answer look complete.
+
+Accuracy is more important than sounding confident.
+
+==================================================
+29. RESPONSE FORMAT MUST MATCH THE QUESTION
+===========================================
+
+Do not use a giant detailed template for every simple question.
+
+Do not use a tiny answer for a complex question.
+
+Choose the amount of formatting and detail according to the user's actual need.
+
+A good answer may contain:
+
+* a short direct answer
+* several detailed sections
+* a numbered procedure
+* a table
+* precautions
+* examples
+* a final summary
+
+But only include the parts that are actually useful.
+
+==================================================
+30. FORMATTING-ONLY SCOPE
+=========================
+
+All instructions in this section are for controlling:
+
+* answer structure
+* formatting
+* readability
+* visual hierarchy
+* explanation depth
+* organization
+* presentation
+* Markdown usage
+* response length
+
+These instructions DO NOT authorize any change to external or persistent data.
+
+Do NOT modify, delete, overwrite, transform, create or update:
+
+* user data
+* farmer profiles
+* database records
+* stored records
+* files
+* API state
+* application state
+* account information
+* settings
+* preferences
+* persistent memory
+* external systems
+
+Formatting instructions must affect ONLY the generated response text.
+
+==================================================
+31. FINAL QUALITY CHECK
+=======================
+
+Before returning the answer, silently verify:
+
+1. Did I directly answer the users actual question?
+2. Is the answer detailed enough?
+3. Did I provide enough meaningful points?
+4. Does every important point contain useful explanation?
+5. Is the structure appropriate for this question?
+6. Are headings and lists consistent?
+7. Are important values and units clear?
+8. Did I use a table only where useful?
+9. Did I avoid unnecessary repetition?
+10. Did I avoid shallow one-line recommendations?
+11. Did I clearly separate confirmed information from uncertainty?
+12. Are precautions included where relevant?
+13. Is the answer readable on a mobile screen?
+14. Is ${langName} used consistently?
+15. Did I avoid changing or modifying any user/application data?
+16. Did I provide a useful conclusion for a complex answer?
+
+Then return the final answer.
+
+Do not describe these internal formatting rules to the user.
+`;
+
+
+*/
+
+
+  // ------- this prompt for diffrent use like 7 8 or more points ----------
+
+const systemPrompt = `You are CropMind's expert Agricultural AI Assistant.
+  Answer the farmer's question thoroughly and in detail in ${langName} language.
+
+  STRICT INSTRUCTIONS FOR RESPONSE LENGTH & QUALITY:
+  1. DO NOT limit your response to 3 or 4 short bullet points. Provide a complete, in-depth explanation with 6 to 10 actionable points.
+  2. Divide the answer into clear categories using bold headings, such as:
+     - **कारण और लक्षण (Symptoms & Cause)**
+     - **जैविक/देसी उपाय (Organic Remedies)**
+     - **रासायनिक दवाइयां और मात्रा (Chemical Treatment & Exact Dosage)**
+     - **छिड़काव का सही समय और सावधानी (Spraying Timing & Precautions)**
+  3. Always include specific dosages (e.g., ml or gram per liter of water) and spraying interval.
+  4. Keep the language warm, simple, and practical for an Indian farmer to follow easily.`;
+
+  // UI me user ka original message hi dikhega
   const newMsgs = [...state.chatMessages, { role: "user", text: msg }];
   setState({ chatMessages: newMsgs, chatInput: "", chatLoading: true });
 
-  if (!state.apiKey) {
-    setState({
-      chatMessages: [...newMsgs, { role: "ai", text: t("noApiKey") }],
-      chatLoading: false,
-    });
-    return;
-  }
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        apiKey: state.apiKey,
-        message: msg,
+        apiKey: state.apiKey || "",
+        // AI ko system instruction + user message dono sath bhej rahe hain
+        message: `${systemPrompt}\n\nFarmer Question: ${msg}`,
         lang: state.lang,
       }),
     });
     const data = await res.json();
+
+    // Handling error response from server
+    if (data.geminiError || data.error) {
+      const errorMsg = data.geminiError || data.error;
+      setState({
+        chatMessages: [
+          ...newMsgs,
+          { role: "ai", text: `⚠️ Error: ${errorMsg}` },
+        ],
+        chatLoading: false,
+      });
+      return;
+    }
+
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || t("error");
     setState({
       chatMessages: [...newMsgs, { role: "ai", text: reply }],
       chatLoading: false,
     });
-  } catch {
+  } catch (err) {
     setState({
       chatMessages: [...newMsgs, { role: "ai", text: t("error") }],
       chatLoading: false,
@@ -446,7 +1223,8 @@ async function sendChat() {
 }
 
 // ── VOICE INPUT ───────
-function startVoice() {
+// ── VOICE INPUT (DYNAMIC FOR BOTH SECTIONS) ───────
+function startVoice(mode = "symptoms") {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) {
     alert(
@@ -456,24 +1234,45 @@ function startVoice() {
     );
     return;
   }
-  // If already listening, stop
-  if (state._recognition) {
-    state._recognition.stop();
-    state._recognition = null;
-    state.listening = false;
-    const vbtn = document.querySelector(".cm-voice-btn");
-    if (vbtn) {
+
+  // Target Input ID and Button Class dynamically decides
+  const inputId = mode === "chat" ? "chat-input" : "symptoms-input";
+  const btnSelector = mode === "chat" ? ".cm-voice-btn-chat" : ".cm-voice-btn";
+  const vbtn = document.querySelector(btnSelector);
+
+  // Helper function:for Button UI update
+  const updateUI = (isRecording) => {
+    if (!vbtn) return;
+    if (isRecording) {
+      vbtn.classList.add("recording");
+      vbtn.innerHTML =
+        '<span style="font-size:1.3rem">🔴</span> ' +
+        (state.lang === "mr"
+          ? "" // "ऐकत आहे..."
+          : state.lang === "hi"
+            ? "" // "सुन रहा है..."
+            : ""); // "Listening..."
+    } else {
       vbtn.classList.remove("recording");
       vbtn.innerHTML =
         '<span style="font-size:1.3rem">🎙️</span> ' +
         (state.lang === "mr"
-          ? "आवाजात सांगा"
+          ? "" // "आवाजात सांगा"
           : state.lang === "hi"
-            ? "आवाज में बोलें"
-            : "Voice Input");
+            ? "" // "आवाज में बोलें"
+            : ""); // "Voice Input"
     }
+  };
+
+  // if input are allredy recording then stop
+  if (state._recognition) {
+    state._recognition.stop();
+    state._recognition = null;
+    state.listening = false;
+    updateUI(false);
     return;
   }
+
   const r = new SR();
   r.lang =
     state.lang === "mr"
@@ -483,46 +1282,46 @@ function startVoice() {
         : state.lang === "ta"
           ? "ta-IN"
           : "en-IN";
+
   r.continuous = false;
   r.interimResults = false;
+
   r.onresult = (e) => {
     const transcript = e.results[0][0].transcript;
-    state.symptoms = transcript;
+
+    // Dynamic State Update (text goes at corect place)
+    if (mode === "chat") {
+      state.chatInput = transcript;
+    } else {
+      state.symptoms = transcript;
+    }
+
     state.listening = false;
     state._recognition = null;
-    // Update textarea directly - no full re-render needed
-    const sym = document.getElementById("symptoms-input");
-    if (sym) {
-      sym.value = transcript;
-      sym.style.borderColor = "#4CAF50";
+
+    // Dynamic Input Field Update
+    const inputElem = document.getElementById(inputId);
+    if (inputElem) {
+      inputElem.value = transcript;
+      inputElem.style.borderColor = "#4CAF50";
     }
-    // Update voice button
-    const vbtn = document.querySelector(".cm-voice-btn");
-    if (vbtn) {
-      vbtn.classList.remove("recording");
-      vbtn.innerHTML =
-        '<span style="font-size:1.3rem">🎙️</span> ' +
-        (state.lang === "mr"
-          ? "आवाजात सांगा"
-          : state.lang === "hi"
-            ? "आवाज में बोलें"
-            : "Voice Input");
+
+    // Button status Reset
+    updateUI(false);
+
+    // if Symptoms Mode are active then enable analize botton
+    if (mode === "symptoms") {
+      const abtn = document.querySelector('.cm-btn[onclick="runDiagnosis()"]');
+      if (abtn) abtn.removeAttribute("disabled");
     }
-    // Enable analyze button
-    const abtn = document.querySelector('.cm-btn[onclick="runDiagnosis()"]');
-    if (abtn) abtn.removeAttribute("disabled");
   };
+
   r.onerror = (e) => {
     console.log("Voice error:", e.error);
     state.listening = false;
     state._recognition = null;
-    const vbtn = document.querySelector(".cm-voice-btn");
-    if (vbtn) {
-      vbtn.classList.remove("recording");
-      vbtn.innerHTML =
-        '<span style="font-size:1.3rem">🎙️</span> ' +
-        (state.lang === "mr" ? "आवाजात सांगा" : "Voice Input");
-    }
+    updateUI(false);
+
     if (e.error === "not-allowed") {
       alert(
         state.lang === "mr"
@@ -533,33 +1332,18 @@ function startVoice() {
       );
     }
   };
+
   r.onend = () => {
     if (state.listening) {
       state.listening = false;
       state._recognition = null;
-      const vbtn = document.querySelector(".cm-voice-btn");
-      if (vbtn) {
-        vbtn.classList.remove("recording");
-        vbtn.innerHTML =
-          '<span style="font-size:1.3rem">🎙️</span> ' +
-          (state.lang === "mr" ? "आवाजात सांगा" : "Voice Input");
-      }
+      updateUI(false);
     }
   };
+
   state._recognition = r;
   state.listening = true;
-  // Update button directly without full re-render
-  const vbtn = document.querySelector(".cm-voice-btn");
-  if (vbtn) {
-    vbtn.classList.add("recording");
-    vbtn.innerHTML =
-      '<span style="font-size:1.3rem">🔴</span> ' +
-      (state.lang === "mr"
-        ? "ऐकत आहे... (थांबवण्यासाठी दाबा)"
-        : state.lang === "hi"
-          ? "सुन रहा है..."
-          : "Listening... (tap to stop)");
-  }
+  updateUI(true);
   r.start();
 }
 
@@ -684,7 +1468,8 @@ function buildDiagnosis() {
         state.lang === "mr"
           ? " - Settings मध्ये Gemini API Key टाका."
           : " - Add Gemini API Key in Settings.";
-    return `<div style="background:#FFEBEE;border-radius:12px;padding:16px;margin-top:12px;font-size:0.85rem;color:#C62828;text-align:center;line-height:1.6">
+    return `
+    <div style="background:#FFEBEE;border-radius:12px;padding:16px;margin-top:12px;font-size:0.85rem;color:#C62828;display:none;text-align:center;line-height:1.6">
       ⚠️ ${state.lang === "mr" ? "AI निदान अयशस्वी" : state.lang === "hi" ? "AI निदान विफल" : "AI Diagnosis Failed"}${hint}
       ${errMsg ? `<div style="font-size:0.75rem;margin-top:6px;opacity:0.8">${esc(errMsg.substring(0, 100))}</div>` : ""}
       <div style="margin-top:10px"><button onclick="window.open('https://aistudio.google.com','_blank')" style="background:#1565C0;border:none;border-radius:8px;padding:8px 14px;color:#fff;cursor:pointer;font-size:0.8rem">🔑 Get Free API Key</button></div>
@@ -695,8 +1480,8 @@ function buildDiagnosis() {
       <div class="cm-card-title-dark" style="padding:0 0 8px">${t("diagnosisResult")}</div>
       <div class="cm-diagnosis-card">
         <div class="cm-diagnosis-header">
-          <div class="cm-diagnosis-disease">🦠 ${esc(d.disease)}</div>
-          <div class="cm-diagnosis-confidence">✓ ${t("confidence")}: ${esc(d.confidence)}</div>
+          <div class="cm-diagnosis-disease">💡${esc(d.disease)}</div>
+          <div class="cm-diagnosis-confidence">✔️  ${t("confidence")}: ${esc(d.confidence)}</div>
           ${d.cause ? `<div style="font-size:0.8rem;color:rgba(255,255,255,0.85);margin-top:8px">${esc(d.cause)}</div>` : ""}
         </div>
         <div class="cm-diagnosis-body">
@@ -773,7 +1558,7 @@ function buildCropDetail(c) {
     </div>`;
 }
 
-// ── SCREEN BUILDERS ───────────────────────────────────
+// ── SCREEN BUILDERS ─────────
 
 function buildHomeScreen() {
   const p = state.profile;
@@ -787,8 +1572,8 @@ function buildHomeScreen() {
 
       <div class="cm-card cm-card-green">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
-          <div class="cm-card-title" style="margin-bottom:0">🌦 ${t("weatherNow")}</div>
-          <button onclick="toggleLocationSearch()" style="background:rgba(255,255,255,0.2);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:0.75rem;cursor:pointer;font-family:inherit;font-weight:600">📍 ${state.lang === "mr" ? "जागा बदला" : state.lang === "hi" ? "जगह बदलें" : "Change Location"}</button>
+          <div class="cm-card-title" style="margin-bottom:0">${t("weatherNow")}</div>
+          <button onclick="toggleLocationSearch()" style="background:rgba(255,255,255,0.2);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:0.85rem;cursor:pointer;font-family:inherit;font-weight:600">${state.lang === "mr" ? "जागा बदला" : state.lang === "hi" ? "जगह बदलें" : "Change Location"}</button>
         </div>
         ${
           state.showLocationSearch
@@ -805,7 +1590,7 @@ function buildHomeScreen() {
       </div>
 
       <div class="cm-card">
-        <div class="cm-card-title-dark">👨‍🌾 ${t("farmerProfile")}</div>
+        <div class="cm-card-title-dark">${t("farmerProfile")}</div>
         <div class="cm-form-group">
           <label class="cm-label">${t("yourName")}</label>
           <input class="cm-input" id="inp-name" value="${esc(p.name)}" placeholder="${state.lang === "mr" ? "राजेश पाटील" : "Rajesh Patil"}">
@@ -866,7 +1651,10 @@ function buildDoctorScreen() {
       <div class="cm-section-sub">${t("cropDoctorSub")}</div>
     </div>
     <div class="cm-section">
-      ${!state.apiKey ? `<div class="cm-no-api">⚠️ ${t("noApiKey")}</div><div style="height:8px"></div>` : ""}
+      ${
+        /* !state.apiKey ? `<div class="cm-no-api">⚠️ ${t("noApiKey")}</div><div style="height:8px"></div>` : */
+        ""
+      }
 
       <div class="cm-card">
         <div class="cm-card-title-dark">🌾 ${t("selectCrop")}</div>
@@ -880,21 +1668,21 @@ function buildDoctorScreen() {
 
       <div class="cm-card">
         <div class="cm-card-title-dark">💬 ${t("describeProblem")}</div>
-        <button class="cm-voice-btn ${state.listening ? "recording" : ""}" onclick="startVoice()" style="border:none">
+        <button class="cm-voice-btn ${state.listening ? "recording" : ""}" onclick="startVoice('symptoms')" style="border:none">
           <span style="font-size:1.3rem">${state.listening ? "🔴" : "🎙️"}</span>
-          ${
-            state.listening
-              ? state.lang === "mr"
-                ? "ऐकत आहे... (थांबवण्यासाठी दाबा)"
-                : state.lang === "hi"
-                  ? "सुन रहा है... (रोकने के लिए दबाएं)"
-                  : "Listening... (tap to stop)"
-              : state.lang === "mr"
-                ? "आवाजात सांगा"
-                : state.lang === "hi"
-                  ? "आवाज में बोलें"
-                  : t("voiceInput")
-          }
+    ${
+      state.listening
+        ? state.lang === "mr"
+          ? "ऐकत आहे... (थांबवण्यासाठी दाबा)" // "ऐकत आहे... (थांबवण्यासाठी दाबा)"
+          : state.lang === "hi"
+            ? "सुन रहा है... (रोकने के लिए दबाएं)" // "सुन रहा है... (रोकने के लिए दबाएं)"
+            : "Listening... (tap to stop)" // "Listening... (tap to stop)"
+        : state.lang === "mr"
+          ? "आवाजात सांगा" // "आवाजात सांगा"
+          : state.lang === "hi"
+            ? "आवाज में बोलें" // "आवाज में बोलें"
+            : t("voiceInput") // "voiceInput"
+    } 
         </button>
         <textarea class="cm-input cm-textarea" id="symptoms-input" placeholder="${state.lang === "mr" ? "उदा. पानावर पिवळे डाग, पाने गळत आहेत..." : state.lang === "hi" ? "उदा. पत्तियों पर पीले धब्बे, पत्तियां गिर रही हैं..." : "e.g. Yellow spots on leaves, falling leaves, wilting..."}" oninput="state.symptoms=this.value">${esc(state.symptoms)}</textarea>
       </div>
@@ -1183,25 +1971,55 @@ function buildCommunityScreen() {
   const tips = typeof COMMUNITY_TIPS !== "undefined" ? COMMUNITY_TIPS : [];
   return `
     <div class="cm-section-header">
-      <div class="cm-section-title">👨‍🌾 ${t("communityTitle")}</div>
+      <div class="cm-section-title">${t("communityTitle")}</div>
     </div>
     <div class="cm-section">
       <div class="cm-chat-box">
         <div class="cm-card-title-dark">🤖 ${t("askAI")}</div>
-        <div class="cm-chat-messages" id="chat-msgs">
-          ${state.chatMessages.map((m) => `<div class="cm-chat-msg ${m.role}">${esc(m.text)}</div>`).join("")}
-          ${state.chatLoading ? '<div class="cm-loading" style="padding:8px 0"><div class="cm-dot"></div><div class="cm-dot"></div><div class="cm-dot"></div></div>' : ""}
-        </div>
+       <div class="cm-chat-messages" id="chat-msgs">
+  ${state.chatMessages
+    .map((m) => {
+      // Agar role 'ai' hai toh marked.parse chalega, baki user ke liye normal esc()
+      const isAI = m.role === "ai";
+      const formattedText =
+        isAI && typeof marked !== "undefined"
+          ? marked.parse(m.text)
+          : esc(m.text);
+
+      return `<div class="cm-chat-msg ${m.role}">${formattedText}</div>`;
+    })
+    .join("")}
+  
+  ${state.chatLoading ? '<div class="cm-loading" style="padding:8px 0"><div class="cm-dot"></div><div class="cm-dot"></div><div class="cm-dot"></div></div>' : ""}
+</div>
         <div class="cm-chat-input-row">
           <input class="cm-chat-input" id="chat-input" value="${esc(state.chatInput)}" placeholder="${t("typeQuestion")}">
+              <button class="cm-voice-btn-chat ${state.listening ? "recording" : ""}" onclick="startVoice('chat')" style="border:none">
+          <span style="font-size:1.3rem">${state.listening ? "🔴" : "🎙️"}</span>
+        
+          ${
+            state.listening
+              ? state.lang === "mr"
+                ? "" // "ऐकत आहे... (थांबवण्यासाठी दाबा)"
+                : state.lang === "hi"
+                  ? "" // "सुन रहा है... (रोकने के लिए दबाएं)"
+                  : "" // "Listening... (tap to stop)"
+              : state.lang === "mr"
+                ? "" // "आवाजात सांगा"
+                : state.lang === "hi"
+                  ? "" // "आवाज में बोलें"
+                  : t("") // "voiceInput"
+          } 
+          
+        </button>
           <button class="cm-chat-send" onclick="sendChat()">➤</button>
         </div>
       </div>
-      <div class="cm-card-title-dark" style="padding:8px 0 10px">${t("tips")}</div>
+      <div class="cm-card-title-dark" style="padding:8px 0 10px; display:none;">${t("tips")}</div>
       ${tips
         .map(
           (tip) => `
-        <div class="cm-tip-card">
+        <div class="cm-tip-card"  style="display:none;">
           <div class="cm-tip-header">
             <div class="cm-tip-avatar">${tip.avatar}</div>
             <div>
@@ -1283,7 +2101,7 @@ function buildSettingsScreen() {
         </div>
       </div>
 
-      <div class="cm-card">
+      <div class="cm-card" style="display: none;">
         <div class="cm-card-title-dark">🤖 Gemini AI ${t("apiKeyLabel") || "API Key"}</div>
         <div class="cm-api-info">
           🔑 ${state.lang === "mr" ? "Gemini API Key मोफत मिळवा:" : "Get free Gemini API Key:"}<br>
@@ -1357,7 +2175,7 @@ function buildApp() {
     <div class="cm">
       ${state.offline ? `<div class="cm-offline">📡 ${t("offlineMode")} — ${t("cachedData")}</div>` : ""}
       <div class="cm-topbar">
-        <div class="cm-logo">Crop<span>Mind</span> 🌾</div>
+        <div class="cm-logo"><img class="cropmind_logo" src="cropmind_main_logo.png" alt="cropmind_logo">Crop<span>Mind</span></div>
         <div class="cm-topbar-right">
           <button class="cm-lang-btn" onclick="cycleLang()">${state.lang === "mr" ? "मराठी" : state.lang === "hi" ? "हिंदी" : state.lang === "ta" ? "தமிழ்" : "EN"}</button>
           ${profBtn}
@@ -1429,7 +2247,6 @@ function bindEvents() {
       state.apiKey = e.target.value;
     };
 }
-
 // ── GLOBAL ACTION FUNCTIONS ──────
 window.goTab = (id) =>
   setState({
@@ -1487,12 +2304,6 @@ window.saveProfileFromSettings = () => {
 };
 
 window.testApi = async () => {
-  const key = document.getElementById("api-key-input")?.value || state.apiKey;
-  if (!key) {
-    alert("Please enter an API key first!");
-    return;
-  }
-
   const btn = document.getElementById("test-api-btn");
   if (btn) {
     btn.textContent = "Testing...";
@@ -1500,61 +2311,20 @@ window.testApi = async () => {
   }
 
   try {
-    const modelRes = await fetch("/api/models?key=" + encodeURIComponent(key));
-    const modelData = await modelRes.json();
-
-    if (modelData.error) {
-      alert("API Key Error: " + modelData.error.message);
-      if (btn) {
-        btn.textContent = "Test API Key";
-        btn.disabled = false;
-      }
-      return;
-    }
-
-    const available = (modelData.models || [])
-      .filter(function (m) {
-        return (
-          m.supportedGenerationMethods &&
-          m.supportedGenerationMethods.includes("generateContent")
-        );
-      })
-      .map(function (m) {
-        return m.name.replace("models/", "");
-      })
-      .slice(0, 5);
-
-    const testRes = await fetch("/api/diagnose", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        apiKey: key,
-        prompt: "Reply with just the word: Working",
-        imageBase64: null,
-      }),
+      body: JSON.stringify({ message: "Hello", lang: "en" }),
     });
-    const testData = await testRes.json();
-    const reply =
-      testData.candidates &&
-      testData.candidates[0] &&
-      testData.candidates[0].content &&
-      testData.candidates[0].content.parts &&
-      testData.candidates[0].content.parts[0]
-        ? testData.candidates[0].content.parts[0].text
-        : "";
+    const data = await res.json();
 
-    if (reply) {
-      alert("API WORKING! Models: " + available.join(", "));
-      localStorage.setItem("cm_apikey", key);
-      state.apiKey = key;
+    if (data.geminiError || data.error) {
+      alert("❌ API Error: " + (data.geminiError || data.error));
     } else {
-      var err = testData.geminiError || testData.error || "No response";
-      alert("Error: " + err);
+      alert("✅ API Connection Successful! (.env key is working)");
     }
-  } catch (e) {
-    alert(
-      "Connection failed: " + e.message + ". Make sure server.js is running!",
-    );
+  } catch (err) {
+    alert("❌ Server connection failed: " + err.message);
   }
 
   if (btn) {
@@ -1619,7 +2389,7 @@ window.runDiagnosis = runDiagnosis;
 window.sendChat = sendChat;
 window.setState = setState;
 
-// ── INIT ──────────────────────────────────────────────
+// ── INIT ────
 window.addEventListener("online", () => setState({ offline: false }));
 window.addEventListener("offline", () => setState({ offline: true }));
 

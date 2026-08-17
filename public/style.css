@@ -8,6 +8,7 @@
   margin: 0;
   padding: 0;
 }
+
 body {
   background: #f5f7f2;
   font-family:
@@ -22,12 +23,14 @@ body {
   position: relative;
   padding-bottom: 80px;
 }
+
 @media (min-width: 600px) {
   .cm {
     max-width: 600px;
     margin: 0 auto;
   }
 }
+
 @media (min-width: 1024px) {
   .cm {
     max-width: 900px;
@@ -48,19 +51,30 @@ body {
   z-index: 100;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
+
+.cropmind_logo {
+  width: 30px;
+}
+
 .cm-logo {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.4rem;
   color: #1a5c2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .cm-logo span {
   color: #4caf50;
 }
+
 .cm-topbar-right {
   display: flex;
   gap: 8px;
   align-items: center;
 }
+
 .cm-lang-btn {
   background: #e8f5e9;
   border: none;
@@ -73,6 +87,7 @@ body {
   color: #2e7d32;
   cursor: pointer;
 }
+
 .cm-settings-btn {
   background: none;
   border: none;
@@ -94,6 +109,7 @@ body {
   z-index: 100;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
+
 .cm-nav-item {
   flex: 1;
   display: flex;
@@ -107,21 +123,26 @@ body {
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   gap: 3px;
 }
+
 .cm-nav-item .nav-icon {
   font-size: 1.3rem;
 }
+
 .cm-nav-item .nav-label {
   font-size: 0.6rem;
   font-weight: 500;
   color: #9e9e9e;
 }
+
 .cm-nav-item.active .nav-label {
   color: #2e7d32;
   font-weight: 700;
 }
+
 .cm-nav-item.active .nav-icon {
   transform: scale(1.15);
 }
+
 .cm-nav-dot {
   width: 5px;
   height: 5px;
@@ -131,14 +152,16 @@ body {
 
 /* SECTIONS */
 .cm-section {
-  padding: 0 16px 16px;
+  padding: 0 16px 0px;
   animation: cmFade 0.3s ease;
 }
+
 @keyframes cmFade {
   from {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -153,20 +176,23 @@ body {
   margin-bottom: 14px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
+
 .cm-card-green {
   background: linear-gradient(135deg, #1b5e20, #2e7d32);
   color: #fff;
 }
+
 .cm-card-title {
-  font-size: 0.72rem;
+  font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #81c784;
   margin-bottom: 10px;
 }
+
 .cm-card-title-dark {
-  font-size: 0.72rem;
+  font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -178,17 +204,20 @@ body {
 .cm-greeting {
   padding: 20px 16px 8px;
 }
+
 .cm-greeting-time {
   font-size: 0.8rem;
   color: #81c784;
   font-weight: 500;
 }
+
 .cm-greeting-name {
   font-size: 1.4rem;
   font-weight: 700;
   color: #1a3c20;
   margin-top: 2px;
 }
+
 .cm-greeting-sub {
   font-size: 0.85rem;
   color: #6b8f72;
@@ -215,46 +244,55 @@ body {
   align-items: center;
   justify-content: space-between;
 }
+
 .cm-weather-temp {
   font-size: 2.8rem;
   font-weight: 800;
   color: #fff;
   line-height: 1;
 }
+
 .cm-weather-emoji {
   font-size: 3rem;
 }
+
 .cm-weather-location {
-  font-size: 0.9rem;
+  font-size: 1.75rem;
   color: rgba(255, 255, 255, 0.85);
   margin-bottom: 4px;
 }
+
 .cm-weather-desc {
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.7);
 }
+
 .cm-weather-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 14px;
 }
+
 .cm-weather-stat {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   padding: 8px;
   text-align: center;
 }
+
 .cm-weather-stat-val {
   font-size: 0.95rem;
   font-weight: 700;
   color: #fff;
 }
+
 .cm-weather-stat-label {
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.75);
   margin-top: 2px;
 }
+
 .cm-weather-tip {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 10px;
@@ -271,17 +309,20 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
+
 .cm-impact-item {
   text-align: center;
   background: #e8f5e9;
   border-radius: 12px;
   padding: 12px 8px;
 }
+
 .cm-impact-num {
   font-size: 1.3rem;
   font-weight: 800;
   color: #2e7d32;
 }
+
 .cm-impact-label {
   font-size: 0.65rem;
   color: #6b8f72;
@@ -295,6 +336,7 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
 .cm-input {
   width: 100%;
   background: #f5f7f2;
@@ -308,9 +350,11 @@ body {
   outline: none;
   transition: border-color 0.2s;
 }
+
 .cm-input:focus {
   border-color: #4caf50;
 }
+
 .cm-select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234CAF50' stroke-width='2' fill='none'/%3E%3C/svg%3E");
@@ -319,6 +363,7 @@ body {
   padding-right: 36px;
   cursor: pointer;
 }
+
 .cm-btn {
   width: 100%;
   background: #2e7d32;
@@ -338,30 +383,37 @@ body {
   justify-content: center;
   gap: 8px;
 }
+
 .cm-btn:hover {
   background: #1b5e20;
   transform: translateY(-1px);
 }
+
 .cm-btn:active {
   transform: scale(0.98);
 }
+
 .cm-btn-outline {
   background: transparent;
   border: 2px solid #2e7d32;
   color: #2e7d32;
 }
+
 .cm-btn-orange {
   background: #e65100;
 }
+
 .cm-btn-orange:hover {
   background: #bf360c;
 }
+
 .cm-btn-sm {
   padding: 10px 18px;
   font-size: 0.85rem;
   width: auto;
   border-radius: 10px;
 }
+
 .cm-label {
   font-size: 0.78rem;
   font-weight: 600;
@@ -369,9 +421,11 @@ body {
   margin-bottom: 6px;
   display: block;
 }
+
 .cm-form-group {
   margin-bottom: 12px;
 }
+
 .cm-success-toast {
   background: #4caf50;
   color: #fff;
@@ -388,22 +442,26 @@ body {
 .cm-section-header {
   padding: 20px 16px 12px;
 }
+
 .cm-section-title {
   font-size: 1.3rem;
   font-weight: 800;
   color: #1a3c20;
 }
+
 .cm-section-sub {
   font-size: 0.82rem;
   color: #6b8f72;
   margin-top: 3px;
 }
+
 .cm-crop-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-bottom: 4px;
 }
+
 .cm-crop-btn {
   background: #f5f7f2;
   border: 2px solid #e0e8e1;
@@ -413,25 +471,30 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .cm-crop-btn.selected {
   border-color: #4caf50;
   background: #e8f5e9;
 }
+
 .cm-crop-btn .crop-icon {
   font-size: 1.5rem;
 }
+
 .cm-crop-btn .crop-name {
   font-size: 0.65rem;
   font-weight: 600;
   color: #1a3c20;
   margin-top: 4px;
 }
+
 .cm-soil-row {
   display: flex;
   gap: 8px;
   margin-bottom: 4px;
   flex-wrap: wrap;
 }
+
 .cm-soil-btn {
   flex: 1;
   min-width: 80px;
@@ -446,16 +509,19 @@ body {
   color: #1a3c20;
   transition: all 0.2s;
 }
+
 .cm-soil-btn.selected {
   border-color: #795548;
   background: #efebe9;
   color: #4e342e;
 }
+
 .cm-textarea {
   min-height: 100px;
   resize: none;
   font-size: 0.95rem;
 }
+
 .cm-photo-upload {
   border: 2px dashed #a5d6a7;
   border-radius: 14px;
@@ -465,10 +531,12 @@ body {
   transition: all 0.2s;
   background: #f1f8e9;
 }
+
 .cm-photo-upload:hover {
   border-color: #4caf50;
   background: #e8f5e9;
 }
+
 .cm-photo-preview {
   width: 100%;
   border-radius: 12px;
@@ -476,6 +544,7 @@ body {
   object-fit: cover;
   margin-top: 10px;
 }
+
 .cm-voice-btn {
   background: #e8f5e9;
   border: 2px solid #a5d6a7;
@@ -493,17 +562,38 @@ body {
   font-weight: 600;
   transition: all 0.2s;
 }
+
+.cm-voice-btn-chat {
+  background: #e8f5e9;
+  border: 2px solid #a5d6a7;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  width: 46px;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 0.9rem;
+  color: #2e7d32;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
 .cm-voice-btn.recording {
   background: #ffebee;
   border-color: #ef9a9a;
   color: #c62828;
   animation: cmPulse 1s infinite;
 }
+
 @keyframes cmPulse {
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.6;
   }
@@ -515,15 +605,18 @@ body {
   overflow: hidden;
   margin-bottom: 14px;
 }
+
 .cm-diagnosis-header {
   background: linear-gradient(135deg, #1b5e20, #2e7d32);
   padding: 18px;
 }
+
 .cm-diagnosis-disease {
   font-size: 1.2rem;
   font-weight: 800;
   color: #fff;
 }
+
 .cm-diagnosis-confidence {
   display: inline-flex;
   align-items: center;
@@ -536,16 +629,19 @@ body {
   font-weight: 600;
   margin-top: 6px;
 }
+
 .cm-diagnosis-body {
   background: #fff;
   padding: 18px;
 }
+
 .cm-treatment-step {
   display: flex;
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid #f0f4f1;
 }
+
 .cm-step-num {
   width: 28px;
   height: 28px;
@@ -559,43 +655,53 @@ body {
   color: #fff;
   flex-shrink: 0;
 }
+
 .cm-step-text {
   font-size: 0.88rem;
   color: #1a3c20;
   line-height: 1.5;
   padding-top: 4px;
 }
+
 .cm-before-after {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 14px;
 }
+
 .cm-ba-card {
   border-radius: 12px;
   padding: 14px;
   text-align: center;
 }
+
 .cm-ba-before {
   background: #ffebee;
 }
+
 .cm-ba-after {
   background: #e8f5e9;
 }
+
 .cm-ba-emoji {
   font-size: 2.5rem;
 }
+
 .cm-ba-label {
   font-size: 0.75rem;
   font-weight: 700;
   margin-top: 6px;
 }
+
 .cm-ba-before .cm-ba-label {
   color: #c62828;
 }
+
 .cm-ba-after .cm-ba-label {
   color: #2e7d32;
 }
+
 .cm-ba-desc {
   font-size: 0.7rem;
   color: #6b8f72;
@@ -611,9 +717,11 @@ body {
   padding: 0 16px 12px;
   scrollbar-width: none;
 }
+
 .cm-filter-row::-webkit-scrollbar {
   display: none;
 }
+
 .cm-filter-chip {
   background: #fff;
   border: 2px solid #e0e8e1;
@@ -627,11 +735,13 @@ body {
   transition: all 0.2s;
   flex-shrink: 0;
 }
+
 .cm-filter-chip.active {
   background: #2e7d32;
   border-color: #2e7d32;
   color: #fff;
 }
+
 .cm-product-card {
   background: #fff;
   border-radius: 16px;
@@ -642,6 +752,7 @@ body {
   gap: 14px;
   align-items: flex-start;
 }
+
 .cm-product-icon-wrap {
   width: 56px;
   height: 56px;
@@ -653,37 +764,44 @@ body {
   font-size: 1.8rem;
   flex-shrink: 0;
 }
+
 .cm-product-info {
   flex: 1;
   min-width: 0;
 }
+
 .cm-product-name {
   font-size: 0.95rem;
   font-weight: 700;
   color: #1a3c20;
 }
+
 .cm-product-desc {
   font-size: 0.75rem;
   color: #6b8f72;
   margin-top: 3px;
   line-height: 1.4;
 }
+
 .cm-product-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 10px;
 }
+
 .cm-product-price {
   font-size: 1rem;
   font-weight: 800;
   color: #2e7d32;
 }
+
 .cm-product-meta {
   font-size: 0.7rem;
   color: #9e9e9e;
   margin-top: 2px;
 }
+
 .cm-buy-btn {
   background: #2e7d32;
   border: none;
@@ -698,9 +816,11 @@ body {
   white-space: nowrap;
   transition: all 0.2s;
 }
+
 .cm-buy-btn:hover {
   background: #1b5e20;
 }
+
 .cm-recommended-badge {
   background: #ff8f00;
   color: #fff;
@@ -717,9 +837,11 @@ body {
   padding: 0 16px 12px;
   position: relative;
 }
+
 .cm-search {
   padding-left: 40px;
 }
+
 .cm-search-icon {
   position: absolute;
   left: 28px;
@@ -727,6 +849,7 @@ body {
   transform: translateY(-50%);
   font-size: 1rem;
 }
+
 .cm-crop-list-item {
   background: #fff;
   border-radius: 16px;
@@ -739,10 +862,12 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
 }
+
 .cm-crop-list-item:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
+
 .cm-crop-list-icon {
   font-size: 2rem;
   width: 50px;
@@ -754,56 +879,68 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .cm-crop-list-info {
   flex: 1;
 }
+
 .cm-crop-list-name {
   font-size: 1rem;
   font-weight: 700;
   color: #1a3c20;
 }
+
 .cm-crop-list-season {
   font-size: 0.75rem;
   color: #6b8f72;
   margin-top: 2px;
 }
+
 .cm-crop-list-price {
   font-size: 0.8rem;
   font-weight: 700;
   color: #2e7d32;
 }
+
 .cm-crop-detail {
   animation: cmFade 0.3s ease;
 }
+
 .cm-crop-detail-header {
   background: linear-gradient(135deg, #1b5e20, #388e3c);
   padding: 24px 16px 20px;
 }
+
 .cm-crop-detail-icon {
   font-size: 4rem;
 }
+
 .cm-crop-detail-name {
   font-size: 1.6rem;
   font-weight: 800;
   color: #fff;
   margin-top: 8px;
 }
+
 .cm-crop-detail-sub {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.8);
   margin-top: 4px;
 }
+
 .cm-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 14px;
 }
+
 .cm-info-item {
   background: #f5f7f2;
   border-radius: 12px;
   padding: 12px;
 }
+
 .cm-info-label {
   font-size: 0.7rem;
   color: #6b8f72;
@@ -811,42 +948,51 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 .cm-info-value {
   font-size: 0.9rem;
   font-weight: 700;
   color: #1a3c20;
   margin-top: 4px;
 }
+
 .cm-price-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
 .cm-price-card {
   border-radius: 12px;
   padding: 14px;
   text-align: center;
 }
+
 .cm-price-mandi {
   background: #e8f5e9;
 }
+
 .cm-price-msp {
   background: #e3f2fd;
 }
+
 .cm-price-label {
   font-size: 0.7rem;
   color: #6b8f72;
   font-weight: 600;
 }
+
 .cm-price-value {
   font-size: 1rem;
   font-weight: 800;
   color: #1a3c20;
   margin-top: 4px;
 }
+
 .cm-calendar-list {
   list-style: none;
 }
+
 .cm-calendar-item {
   display: flex;
   gap: 10px;
@@ -855,6 +1001,7 @@ body {
   font-size: 0.85rem;
   color: #1a3c20;
 }
+
 .cm-calendar-dot {
   width: 8px;
   height: 8px;
@@ -863,11 +1010,13 @@ body {
   margin-top: 6px;
   flex-shrink: 0;
 }
+
 .cm-disease-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
+
 .cm-disease-tag {
   background: #ffebee;
   color: #c62828;
@@ -876,6 +1025,7 @@ body {
   font-size: 0.75rem;
   font-weight: 600;
 }
+
 .cm-back-btn {
   background: none;
   border: none;
@@ -899,6 +1049,7 @@ body {
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
+
 .cm-opp-header {
   background: linear-gradient(135deg, #1b5e20, #388e3c);
   padding: 16px;
@@ -906,6 +1057,7 @@ body {
   gap: 12px;
   align-items: center;
 }
+
 .cm-opp-icon {
   font-size: 2.5rem;
   width: 56px;
@@ -917,50 +1069,61 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .cm-opp-title {
   font-size: 1.1rem;
   font-weight: 800;
   color: #fff;
 }
+
 .cm-opp-region {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.8);
   margin-top: 3px;
 }
+
 .cm-opp-body {
   padding: 16px;
 }
+
 .cm-opp-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 14px;
 }
+
 .cm-opp-stat {
   background: #f5f7f2;
   border-radius: 10px;
   padding: 10px;
   text-align: center;
 }
+
 .cm-opp-stat-val {
   font-size: 0.82rem;
   font-weight: 800;
   color: #1a3c20;
 }
+
 .cm-opp-stat-label {
   font-size: 0.62rem;
   color: #6b8f72;
   margin-top: 2px;
 }
+
 .cm-risk-easy {
   color: #2e7d32;
 }
+
 .cm-risk-medium {
   color: #e65100;
 }
+
 .cm-risk-hard {
   color: #c62828;
 }
+
 .cm-opp-story {
   background: #fff8e1;
   border-radius: 10px;
@@ -971,6 +1134,7 @@ body {
   border-left: 3px solid #ff8f00;
   margin-bottom: 12px;
 }
+
 .cm-opp-why {
   background: #e8f5e9;
   border-radius: 10px;
@@ -989,11 +1153,13 @@ body {
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
+
 .cm-scheme-top {
   display: flex;
   gap: 12px;
   align-items: flex-start;
 }
+
 .cm-scheme-icon {
   font-size: 1.8rem;
   width: 48px;
@@ -1005,23 +1171,27 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .cm-scheme-name {
   font-size: 0.95rem;
   font-weight: 700;
   color: #1a3c20;
 }
+
 .cm-scheme-benefit {
   font-size: 0.82rem;
   color: #2e7d32;
   font-weight: 600;
   margin-top: 3px;
 }
+
 .cm-scheme-desc {
   font-size: 0.8rem;
   color: #6b8f72;
   margin-top: 8px;
   line-height: 1.5;
 }
+
 .cm-scheme-btn {
   background: #1565c0;
   border: none;
@@ -1035,6 +1205,7 @@ body {
   cursor: pointer;
   margin-top: 12px;
 }
+
 .cm-lesson-card {
   background: #fff;
   border-radius: 14px;
@@ -1047,9 +1218,11 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .cm-lesson-card:hover {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
+
 .cm-lesson-icon {
   font-size: 1.5rem;
   width: 44px;
@@ -1061,11 +1234,13 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .cm-lesson-name {
   font-size: 0.9rem;
   font-weight: 700;
   color: #1a3c20;
 }
+
 .cm-lesson-meta {
   font-size: 0.72rem;
   color: #6b8f72;
@@ -1073,6 +1248,7 @@ body {
   display: flex;
   gap: 8px;
 }
+
 .cm-xp-badge {
   background: #ff8f00;
   color: #fff;
@@ -1081,6 +1257,7 @@ body {
   font-size: 0.65rem;
   font-weight: 800;
 }
+
 .cm-badges-row {
   display: flex;
   gap: 8px;
@@ -1088,6 +1265,7 @@ body {
   padding: 0 16px;
   margin-bottom: 16px;
 }
+
 .cm-badge {
   background: #e8f5e9;
   border-radius: 10px;
@@ -1100,11 +1278,13 @@ body {
   align-items: center;
   gap: 6px;
 }
+
 .cm-tab-row {
   display: flex;
   gap: 8px;
   padding: 0 16px 12px;
 }
+
 .cm-tab-btn {
   flex: 1;
   background: #f5f7f2;
@@ -1119,6 +1299,7 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .cm-tab-btn.active {
   background: #2e7d32;
   color: #fff;
@@ -1132,12 +1313,14 @@ body {
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
+
 .cm-tip-header {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-bottom: 10px;
 }
+
 .cm-tip-avatar {
   font-size: 1.5rem;
   width: 40px;
@@ -1149,27 +1332,32 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .cm-tip-name {
   font-size: 0.9rem;
   font-weight: 700;
   color: #1a3c20;
 }
+
 .cm-tip-meta {
   font-size: 0.72rem;
   color: #6b8f72;
   margin-top: 2px;
 }
+
 .cm-tip-text {
   font-size: 0.85rem;
   color: #333;
   line-height: 1.6;
 }
+
 .cm-tip-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 12px;
 }
+
 .cm-tip-likes {
   font-size: 0.78rem;
   color: #6b8f72;
@@ -1177,6 +1365,7 @@ body {
   align-items: center;
   gap: 4px;
 }
+
 .cm-whatsapp-btn {
   background: #25d366;
   border: none;
@@ -1192,6 +1381,7 @@ body {
   align-items: center;
   gap: 6px;
 }
+
 .cm-verified-badge {
   background: #1565c0;
   color: #fff;
@@ -1200,45 +1390,74 @@ body {
   border-radius: 4px;
   font-weight: 700;
 }
+
 .cm-chat-box {
   background: #fff;
   border-radius: 16px;
-  margin: 0 16px 12px;
+  margin: 0 10px 10px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  height: calc(100vh - 220px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
+
 .cm-chat-messages {
-  max-height: 220px;
+  flex: 1;
   overflow-y: auto;
+  padding-right: 6px;
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .cm-chat-msg {
-  padding: 10px 14px;
+  padding: 10px 25px;
   border-radius: 14px;
-  font-size: 0.85rem;
+  font-size: 1.10rem;
   line-height: 1.5;
   max-width: 85%;
 }
+
 .cm-chat-msg.user {
   background: #e8f5e9;
-  color: #1a3c20;
+  color: #0d1c0f;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
   font-weight: 500;
 }
+
 .cm-chat-msg.ai {
   background: #f5f7f2;
   color: #1a3c20;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
 }
+
+/* AI Chat Text Formatting */
+.cm-chat-msg.ai p {
+  margin: 4px 0;
+}
+.cm-chat-msg.ai ul, .cm-chat-msg.ai ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+.cm-chat-msg.ai li {
+  margin-bottom: 4px;
+}
+.cm-chat-msg.ai strong {
+  font-weight: 600;
+  color: #1b5e20;
+}
+
 .cm-chat-input-row {
   display: flex;
   gap: 8px;
+  margin-top: auto;
 }
+
 .cm-chat-input {
   flex: 1;
   background: #f5f7f2;
@@ -1251,6 +1470,9 @@ body {
   color: #1a3c20;
   outline: none;
 }
+
+
+
 .cm-chat-send {
   background: #2e7d32;
   border: none;
@@ -1277,6 +1499,7 @@ body {
   margin-bottom: 12px;
   line-height: 1.6;
 }
+
 .cm-api-link {
   color: #1565c0;
   font-weight: 700;
@@ -1290,6 +1513,7 @@ body {
   gap: 6px;
   padding: 20px;
 }
+
 .cm-dot {
   width: 8px;
   height: 8px;
@@ -1297,12 +1521,15 @@ body {
   border-radius: 50%;
   animation: cmBounce 1.2s infinite ease-in-out;
 }
+
 .cm-dot:nth-child(2) {
   animation-delay: 0.2s;
 }
+
 .cm-dot:nth-child(3) {
   animation-delay: 0.4s;
 }
+
 @keyframes cmBounce {
   0%,
   80%,
@@ -1310,202 +1537,263 @@ body {
     transform: scale(0.7);
     opacity: 0.5;
   }
+
   40% {
     transform: scale(1.1);
     opacity: 1;
   }
 }
 
-/* ── RESPONSIVE ─────────────────────────────────────────── */
+/* RESPONSIVE */
 @media (min-width: 600px) {
   .cm {
     max-width: 600px;
   }
+
   .cm-bottomnav {
     max-width: 600px;
   }
+
   .cm-crop-grid {
     grid-template-columns: repeat(6, 1fr);
   }
+
   .cm-profile-grid {
     grid-template-columns: 1fr 1fr 1fr;
   }
+
   .cm-section {
     padding: 0 24px 24px;
   }
+
   .cm-greeting {
     padding: 24px 24px 10px;
   }
+
   .cm-section-header {
     padding: 24px 24px 14px;
   }
+
   .cm-filter-row {
     padding: 0 24px 14px;
   }
+
   .cm-product-card {
     margin: 0 24px 14px;
   }
+
   .cm-crop-list-item {
     margin: 0 24px 12px;
   }
+
   .cm-opp-card {
     margin: 0 24px 16px;
   }
+
   .cm-scheme-card {
     margin: 0 24px 14px;
   }
+
   .cm-tip-card {
     margin: 0 24px 14px;
   }
+
   .cm-lesson-card {
     margin: 0 24px 12px;
   }
+
   .cm-chat-box {
     margin: 0 24px 14px;
+    height: calc(100vh - 240px);
   }
+
   .cm-no-api {
     margin: 0 24px;
   }
+
   .cm-search-wrap {
     padding: 0 24px 14px;
   }
+
   .cm-tab-row {
     padding: 0 24px 14px;
   }
+
   .cm-badges-row {
     padding: 0 24px;
   }
+
   .cm-impact-grid {
     gap: 16px;
   }
+
   .cm-impact-num {
     font-size: 1.6rem;
   }
+
   .cm-weather-temp {
     font-size: 3.2rem;
   }
 }
+
 @media (min-width: 1024px) {
   .cm {
     max-width: 900px;
   }
+
   .cm-bottomnav {
     max-width: 900px;
   }
+
   .cm-crop-grid {
     grid-template-columns: repeat(8, 1fr);
   }
+
   .cm-profile-grid {
     grid-template-columns: 1fr 1fr 1fr 1fr;
   }
+
   .cm-card {
     padding: 24px;
   }
+
   .cm-topbar {
     padding: 16px 32px;
   }
+
   .cm-logo {
     font-size: 1.7rem;
   }
+
   .cm-greeting-name {
     font-size: 1.8rem;
   }
+
   .cm-section-title {
     font-size: 1.6rem;
   }
+
   .cm-product-card {
     padding: 20px;
   }
+
   .cm-impact-grid {
     gap: 20px;
   }
+
   .cm-impact-num {
     font-size: 2rem;
   }
+
   .cm-impact-label {
     font-size: 0.8rem;
   }
+
   .cm-weather-temp {
     font-size: 3.8rem;
   }
+
   .cm-weather-emoji {
     font-size: 3.8rem;
   }
+
   .cm-nav-item .nav-icon {
     font-size: 1.5rem;
   }
+
   .cm-nav-item .nav-label {
     font-size: 0.72rem;
   }
+
   .cm-diagnosis-disease {
     font-size: 1.5rem;
   }
+
   .cm-opp-title {
     font-size: 1.3rem;
   }
+
   .cm-crop-detail-name {
     font-size: 2rem;
   }
+
   .cm-crop-list-name {
     font-size: 1.1rem;
   }
+
   .cm-product-name {
     font-size: 1.05rem;
   }
+
   .cm-product-desc {
     font-size: 0.85rem;
   }
+
   .cm-tip-text {
     font-size: 0.95rem;
   }
+
   .cm-scheme-name {
     font-size: 1.05rem;
   }
-  .cm-chat-messages {
-    max-height: 320px;
+
+  .cm-chat-box {
+    margin: 0 32px 16px;
+    height: calc(100vh - 260px);
   }
+
   .cm-section {
     padding: 0 32px 32px;
   }
+
   .cm-greeting {
     padding: 32px 32px 12px;
   }
+
   .cm-section-header {
     padding: 32px 32px 16px;
   }
+
   .cm-filter-row {
     padding: 0 32px 16px;
   }
+
   .cm-product-card {
     margin: 0 32px 16px;
   }
+
   .cm-crop-list-item {
     margin: 0 32px 14px;
   }
+
   .cm-opp-card {
     margin: 0 32px 18px;
   }
+
   .cm-scheme-card {
     margin: 0 32px 16px;
   }
+
   .cm-tip-card {
     margin: 0 32px 16px;
   }
+
   .cm-lesson-card {
     margin: 0 32px 14px;
   }
-  .cm-chat-box {
-    margin: 0 32px 16px;
-  }
+
   .cm-no-api {
     margin: 0 32px;
   }
+
   .cm-search-wrap {
     padding: 0 32px 16px;
   }
+
   .cm-tab-row {
     padding: 0 32px 16px;
   }
+
   .cm-badges-row {
     padding: 0 32px;
   }
@@ -1517,6 +1805,7 @@ body {
   background: #e8f0e9;
   margin: 8px 0 14px;
 }
+
 .cm-tag {
   background: #e8f5e9;
   color: #2e7d32;
@@ -1526,6 +1815,7 @@ body {
   font-weight: 700;
   display: inline-block;
 }
+
 .cm-no-api {
   background: #fff3e0;
   border: 1.5px solid #ffb74d;
@@ -1537,6 +1827,7 @@ body {
   margin: 0 16px;
   line-height: 1.6;
 }
+
 .cm-spacer {
   height: 8px;
 }
