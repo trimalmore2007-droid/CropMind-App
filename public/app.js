@@ -1,3 +1,183 @@
+// ── CROPMIND GOOGLE AUTH MODULE ──
+
+// ═══════════════════════════════════════════════════════
+// ── CROPMIND GOOGLE AUTH MODULE (Consolidated) ──
+// ═══════════════════════════════════════════════════════
+
+// 1. Helper Container Function
+window.getOrCreateAuthCard = function () {
+  let container = document.getElementById("authCard");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "authCard";
+    const header = document.querySelector("header") || document.body;
+    header.appendChild(container);
+  }
+  return container;
+};
+
+// 2. Logged-Out State (Login Card)
+window.renderLoginCard = function () {
+  const container = window.getOrCreateAuthCard();
+  container.innerHTML = `
+    <div class="auth-box">
+      <h3 style="margin-bottom: 5px;">Welcome to CropMind 🌾</h3>
+      <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Save your farm data & chat history.</p>
+      <div id="googleBtnWrapper"></div>
+    </div>
+  `;
+  if (window.google) {
+    google.accounts.id.renderButton(
+      document.getElementById("googleBtnWrapper"),
+      { theme: "outline", size: "large", text: "continue_with" },
+    );
+  }
+};
+
+// 3. Logged-In State (Profile Card)
+window.renderProfileCard = function (user) {
+  const container = window.getOrCreateAuthCard();
+  container.innerHTML = `
+    <div class="user-profile-box">
+      <img src="${user.picture}" alt="${user.name}" class="profile-avatar">
+      <h4 style="margin: 5px 0;">${user.name}</h4>
+      <p class="user-email" style="font-size: 12px; color: #777;">${user.email}</p>
+      <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+      <div class="farm-details" style="font-size: 13px; text-align: left; margin-bottom: 10px;">
+        <p><strong>Gaon:</strong> ${user.village || "Not set"}</p>
+        <p><strong>Fasal:</strong> ${user.crop || "Not set"}</p>
+        <p><strong>Mitti:</strong> ${user.soil || "Not set"}</p>
+      </div>
+      <button id="btnLogout" class="btn-logout">Log Out</button>
+    </div>
+  `;
+  document
+    .getElementById("btnLogout")
+    ?.addEventListener("click", window.handleLogout);
+};
+
+// 4. Check Session on Reload
+window.checkExistingSession = function () {
+  const savedUser = localStorage.getItem("cropmind_user");
+  if (savedUser) {
+    try {
+      window.renderProfileCard(JSON.parse(savedUser));
+    } catch (e) {
+      window.renderLoginCard();
+    }
+  } else {
+    window.renderLoginCard();
+  }
+};
+
+// 5. Logout Handler
+window.handleLogout = function () {
+  localStorage.removeItem("cropmind_user");
+  window.renderLoginCard();
+  console.log("Logged out successfully");
+};
+
+// 6. Global Toggle Function (Profile Icon Click)
+window.toggleAuthCard = function () {
+  console.log("🔍 Profile Button Clicked!");
+  let card = document.getElementById("authCard");
+
+  if (!card) {
+    window.checkExistingSession();
+    card = document.getElementById("authCard");
+  }
+
+  if (card) {
+    card.style.position = "fixed";
+    card.style.top = "60px";
+    card.style.right = "15px";
+    card.style.zIndex = "99999";
+    card.style.background = "#ffffff";
+    card.style.padding = "16px";
+    card.style.borderRadius = "12px";
+    card.style.boxShadow = "0 10px 30px rgba(0,0,0,0.25)";
+
+    const isHidden = card.style.display === "none" || card.style.display === "";
+    card.style.display = isHidden ? "block" : "none";
+  }
+};
+
+// 7. Google Init Function
+window.initGoogleAuth = function () {
+  if (window.google) {
+    google.accounts.id.initialize({
+      client_id:
+        "795477181249-tv5al025m57vjiemvjulmjfiuiaps8us.apps.googleusercontent.com",
+      callback: window.handleGoogleLoginResponse,
+    });
+  } else {
+    console.warn("Google SDK not loaded yet.");
+  }
+};
+
+// ── GOOGLE LOGIN RESPONSE HANDLER ──
+window.handleGoogleLoginResponse = async function (response) {
+  try {
+    const res = await fetch("/api/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: response.credential }),
+    });
+
+    const data = await res.json();
+
+    if (data.success && data.user) {
+      localStorage.setItem("cropmind_user", JSON.stringify(data.user));
+      window.renderProfileCard(data.user);
+      console.log("✅ Logged in successfully!");
+    } else {
+      console.error("Auth Failed:", data.error);
+      alert("Login Error: " + (data.error || "Something went wrong"));
+    }
+  } catch (err) {
+    console.error("Fetch Network Error:", err);
+    alert(
+      "Server se connect nahi ho paaya. Node.js server restart karke dekho.",
+    );
+  }
+};
+
+/*this is only temporary in coment when th e actual problem of network error alart is solve then it can again uncoment */
+
+// 8. Google Token Receive & Backend Sync
+// window.handleGoogleLoginResponse = async function (response) {
+//   try {
+//     const res = await fetch("/api/auth/google", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ token: response.credential }),
+//     });
+//     const data = await res.json();
+
+//     if (data.success) {
+//       console.log("🌱 Login Successful:", data.user);
+//       localStorage.setItem("cropmind_user", JSON.stringify(data.user));
+//       window.renderProfileCard(data.user);
+//     } else {
+//       alert("Login fail ho gaya, please dubara try karein.");
+//     }
+//   } catch (err) {
+//     console.error("Auth Error:", err);
+//     alert("Network error. Please try again.");
+//   }
+// };
+
+// 9. Init on Load
+window.addEventListener("load", function () {
+  window.initGoogleAuth();
+  window.checkExistingSession();
+});
+
+// ------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
+
 // ── STATE ──────
 const state = {
   lang: localStorage.getItem("cm_lang") || "en",
@@ -406,6 +586,23 @@ async function sendChat() {
   const langName =
     { mr: "Marathi", hi: "Hindi", ta: "Tamil", en: "English" }[state.lang] ||
     "Hindi";
+
+  // ------- this prompt for diffrent use like 7 8 or more points ----------
+
+  const systemPrompt = `You are CropMind's expert Agricultural AI Assistant.
+  Answer the farmer's question thoroughly and in detail in ${langName} language.
+
+  STRICT INSTRUCTIONS FOR RESPONSE LENGTH & QUALITY:
+  1. DO NOT limit your response to 3 or 4 short bullet points. Provide a complete, in-depth explanation with 6 to 10 actionable points.
+  2. Divide the answer into clear categories using bold headings, such as:
+     - **कारण और लक्षण (Symptoms & Cause)**
+     - **जैविक/देसी उपाय (Organic Remedies)**
+     - **रासायनिक दवाइयां और मात्रा (Chemical Treatment & Exact Dosage)**
+     - **छिड़काव का सही समय और सावधानी (Spraying Timing & Precautions)**
+  3. Always include specific dosages (e.g., ml or gram per liter of water) and spraying interval.
+  4. Keep the language warm, simple, and practical for an Indian farmer to follow easily.`;
+
+  // ------- this prompt for aplly meny condition when prompt is gives to our API KEY based AI ----------
 
   // 2. System Instructions System Prompt
   /* const systemPrompt = `You are CropMind's expert Agricultural AI Assistant.
@@ -1163,22 +1360,6 @@ Do not describe these internal formatting rules to the user.
 
 */
 
-
-  // ------- this prompt for diffrent use like 7 8 or more points ----------
-
-const systemPrompt = `You are CropMind's expert Agricultural AI Assistant.
-  Answer the farmer's question thoroughly and in detail in ${langName} language.
-
-  STRICT INSTRUCTIONS FOR RESPONSE LENGTH & QUALITY:
-  1. DO NOT limit your response to 3 or 4 short bullet points. Provide a complete, in-depth explanation with 6 to 10 actionable points.
-  2. Divide the answer into clear categories using bold headings, such as:
-     - **कारण और लक्षण (Symptoms & Cause)**
-     - **जैविक/देसी उपाय (Organic Remedies)**
-     - **रासायनिक दवाइयां और मात्रा (Chemical Treatment & Exact Dosage)**
-     - **छिड़काव का सही समय और सावधानी (Spraying Timing & Precautions)**
-  3. Always include specific dosages (e.g., ml or gram per liter of water) and spraying interval.
-  4. Keep the language warm, simple, and practical for an Indian farmer to follow easily.`;
-
   // UI me user ka original message hi dikhega
   const newMsgs = [...state.chatMessages, { role: "user", text: msg }];
   setState({ chatMessages: newMsgs, chatInput: "", chatLoading: true });
@@ -1589,7 +1770,7 @@ function buildHomeScreen() {
         ${buildWeather()}
       </div>
 
-      <div class="cm-card">
+      <div class="cm-card" style="display: none;">
         <div class="cm-card-title-dark">${t("farmerProfile")}</div>
         <div class="cm-form-group">
           <label class="cm-label">${t("yourName")}</label>
@@ -2167,9 +2348,9 @@ function buildApp() {
     }
   }
 
-  const profBtn = `<button class="cm-settings-btn" onclick="toggleSettings()" style="background:#E8F5E9;border:none;border-radius:20px;padding:5px 11px;font-size:0.78rem;font-weight:600;color:#2E7D32;cursor:pointer;display:flex;align-items:center;gap:4px">
-    👤 ${esc(state.profile.name ? state.profile.name.split(" ")[0] : state.lang === "mr" ? "प्रोफाइल" : state.lang === "hi" ? "प्रोफाइल" : "Profile")} ${state.showSettings ? "▲" : "▼"}
-  </button>`;
+  const profBtn = `<button class="cm-settings-btn" onclick="toggleAuthCard()" style="background:#E8F5E9;border:none;border-radius:20px;padding:5px 11px;font-size:0.78rem;font-weight:600;color:#2E7D32;cursor:pointer;display:flex;align-items:center;gap:4px">
+  👤 ${esc(state.profile.name ? state.profile.name.split(" ")[0] : state.lang === "mr" ? "प्रोफाइल" : state.lang === "hi" ? "प्रोफाइल" : "Profile")} 
+</button>`;
 
   return `
     <div class="cm">

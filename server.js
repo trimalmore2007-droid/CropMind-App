@@ -1,38 +1,90 @@
-// ═══════════════════════════════════════════════════
-// CropMind Backend Server (Express Version)
-// Run: node server.js
-// Opens at: http://localhost:3000
-// ═══════════════════════════════════════════════════
-
+// ========================================================
+// SECTION 1: ENVIRONMENT & IMPORTS
+// ========================================================
 
 require("dotenv").config();
-
-// 💡 Yeh line check karegi ki key load hui ya nahi
-console.log("🔑 Gemini API Key Status:", process.env.GEMINI_API_KEY ? "Loaded Successfully ✅" : "NOT Found in .env ❌");
 
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const https = require("https");
 const http = require("http");
+const mongoose = require("mongoose");
+const { OAuth2Client } = require("google-auth-library");
+
+// ========================================================
+// SECTION 2: APP & MIDDLEWARE SETUP
+// ========================================================
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 
-// ── MIDDLEWARE SETUP ─────────────────────────────────
+// CORS configuration (allows all origins for development)
 app.use(cors());
-// Image payload base64 me aata hai isliye 50mb limit rakhi hai
+
+// JSON body parser with increased limit for base64 image payloads
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Static files (HTML, CSS, JS) serve karne ke liye
+// Serve static files from the "public" directory
 app.use(express.static(PUBLIC_DIR));
 
-// ── GLOBAL MEMORY CACHE FOR WORKING MODEL ────────────
+// ========================================================
+// SECTION 3: CLIENT & DATABASE INITIALIZATIONS
+// ========================================================
+
+// Google OAuth Client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// MongoDB Connection
+const MONGO_URI = process.env.MONGO_URI;
+
+if (MONGO_URI) {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => console.log("🌱 MongoDB Atlas Connected Successfully!"))
+    .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+} else {
+  console.log("⚠️ MONGO_URI is missing in .env file");
+}
+
+// ========================================================
+// SECTION 4: SCHEMAS & MODELS
+// ========================================================
+
+const userSchema = new mongoose.Schema({
+  googleId: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  picture: { type: String },
+  village: { type: String, default: "" },
+  crop: { type: String, default: "" },
+  soil: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Safe model initialization to prevent overwriting if the model is already registered
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+console.log(
+  "🔑 Gemini API Key Status:",
+  process.env.GEMINI_API_KEY
+    ? "Loaded Successfully ✅"
+    : "NOT Found in .env ❌",
+);
+
+// ========================================================
+// SECTION 5: HELPER FUNCTIONS & UTILITIES
+// ========================================================
+
 let cachedWorkingModel = "gemini-flash-lite-latest";
 
-// ── SMART GEMINI API PROXY ────────────────────────────
+/**
+ * Smart proxy for Google Gemini API.
+ * Fetches available models, auto-selects the best working one,
+ * and retries on failure with fallback models.
+ */
 function callGeminiAPI(apiKey, body, callback) {
   let hasResponded = false;
 
@@ -55,6 +107,7 @@ function callGeminiAPI(apiKey, body, callback) {
     res.on("end", () => {
       try {
         const parsedList = JSON.parse(data);
+
         if (parsedList.error) {
           console.log("❌ API Key Error:", parsedList.error.message);
           return safeCallback(null, parsedList);
@@ -109,7 +162,7 @@ function callGeminiAPI(apiKey, body, callback) {
           });
         }
 
-        function tryNextModel(index) {
+        const tryNextModel = (index) => {
           if (hasResponded) return;
 
           if (index >= validModels.length) {
@@ -184,7 +237,7 @@ function callGeminiAPI(apiKey, body, callback) {
 
           postReq.write(postData);
           postReq.end();
-        }
+        };
 
         tryNextModel(0);
       } catch (e) {
@@ -197,9 +250,12 @@ function callGeminiAPI(apiKey, body, callback) {
   req.end();
 }
 
-// ── WEATHER PROXY ────────────────────────────────────
+/**
+ * Fetch weather data from Open-Meteo.
+ */
 function fetchWeather(lat, lon, callback) {
   const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,apparent_temperature,weather_code&timezone=auto`;
+
   https
     .get(weatherUrl, (res) => {
       let data = "";
@@ -215,7 +271,9 @@ function fetchWeather(lat, lon, callback) {
     .on("error", callback);
 }
 
-// ── GEOCODE PROXY ────────────────────────────────────
+/**
+ * Reverse geocoding to get city name from coordinates using OpenStreetMap.
+ */
 function getCity(lat, lon, callback) {
   const options = {
     hostname: "nominatim.openstreetmap.org",
@@ -223,6 +281,7 @@ function getCity(lat, lon, callback) {
     method: "GET",
     headers: { "User-Agent": "CropMind/1.0" },
   };
+
   https
     .get(options, (res) => {
       let data = "";
@@ -245,7 +304,9 @@ function getCity(lat, lon, callback) {
     .on("error", () => callback(null, "India"));
 }
 
-// ── IP LOCATION PROXY ─────────────────────────────────
+/**
+ * Fetch location based on IP address.
+ */
 function getIPLocation(callback) {
   https
     .get("https://ipapi.co/json/", (res) => {
@@ -267,6 +328,9 @@ function getIPLocation(callback) {
     .on("error", () => fetchFallbackIP(callback));
 }
 
+/**
+ * Fallback IP location service.
+ */
 function fetchFallbackIP(callback) {
   http
     .get("http://ip-api.com/json/", (res) => {
@@ -293,23 +357,22 @@ function fetchFallbackIP(callback) {
     .on("error", callback);
 }
 
+// ========================================================
+// SECTION 6: API ROUTES
+// ========================================================
 
-
-
-
-
-
-
-// ── API ROUTES ────────────────────────────────────────
-
-// POST /api/diagnose
+/**
+ * POST /api/diagnose
+ * Crop disease diagnosis using Gemini AI (text + optional image).
+ */
 app.post("/api/diagnose", (req, res) => {
-  // Pehle request body se key dekho, nahi mili toh .env file se uthao
   const apiKey = req.body.apiKey || process.env.GEMINI_API_KEY;
   const { prompt, imageBase64, mimeType, selectedCrop } = req.body;
 
   if (!apiKey) {
-    return res.status(400).json({ error: "API key required in .env or request body" });
+    return res
+      .status(400)
+      .json({ error: "API key required in .env or request body" });
   }
 
   const parts = [];
@@ -345,14 +408,18 @@ app.post("/api/diagnose", (req, res) => {
   });
 });
 
-// POST /api/chat
+/**
+ * POST /api/chat
+ * AI-powered farming assistant chat.
+ */
 app.post("/api/chat", (req, res) => {
-  // Request body se key dekho, nahi toh .env se GEMINI_API_KEY use karo
   const apiKey = req.body.apiKey || process.env.GEMINI_API_KEY;
   const { message, lang } = req.body;
 
   if (!apiKey) {
-    return res.status(400).json({ error: "API key required in .env or request body" });
+    return res
+      .status(400)
+      .json({ error: "API key required in .env or request body" });
   }
 
   const langName =
@@ -371,7 +438,10 @@ app.post("/api/chat", (req, res) => {
   );
 });
 
-// GET /api/weather (No API Key Required - Uses Open-Meteo)
+/**
+ * GET /api/weather
+ * Fetches live weather data from Open-Meteo.
+ */
 app.get("/api/weather", (req, res) => {
   const { lat, lon } = req.query;
   if (!lat || !lon) {
@@ -383,7 +453,10 @@ app.get("/api/weather", (req, res) => {
   });
 });
 
-// GET /api/city (No API Key Required - Uses OpenStreetMap)
+/**
+ * GET /api/city
+ * Reverse geocoding to get city name from coordinates.
+ */
 app.get("/api/city", (req, res) => {
   const { lat, lon } = req.query;
   getCity(lat, lon, (err, city) => {
@@ -391,7 +464,10 @@ app.get("/api/city", (req, res) => {
   });
 });
 
-// GET /api/location (No API Key Required - Uses IP-API)
+/**
+ * GET /api/location
+ * Fetches approximate location based on IP address.
+ */
 app.get("/api/location", (req, res) => {
   getIPLocation((err, data) => {
     if (err) return res.json({ error: err.message });
@@ -399,25 +475,109 @@ app.get("/api/location", (req, res) => {
   });
 });
 
-// Fallback route: Baki saare URLs ke liye index.html bhej do (Express 5 Syntax)
+/**
+ * POST /api/auth/google
+ * Google OAuth 2.0 authentication endpoint.
+ * Verifies the ID token and syncs user data with MongoDB.
+ */
+app.post("/api/auth/google", async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ success: false, error: "Token required" });
+    }
+
+    // Verify Google ID Token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, name, email, picture } = payload;
+
+    // Prepare user object for frontend and DB
+    const user = {
+      googleId,
+      name,
+      email,
+      picture,
+      village: "Latur", // Placeholder; can be made dynamic later
+      crop: "Wheat", // Placeholder; can be made dynamic later
+      soil: "Black Soil", // Placeholder; can be made dynamic later
+    };
+
+    // Sync with MongoDB (fail silently if DB is not connected)
+    try {
+      if (typeof User !== "undefined") {
+        let dbUser = await User.findOne({ googleId });
+        if (!dbUser) {
+          dbUser = new User(user);
+          await dbUser.save();
+        }
+      }
+    } catch (dbErr) {
+      console.log("⚠️ DB Save Skipped:", dbErr.message);
+    }
+
+    return res.json({ success: true, user });
+  } catch (error) {
+    console.error("❌ Google Auth Backend Error:", error.message);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========================================================
+// SECTION 7: SPA FALLBACK ROUTE
+// ========================================================
+
+/**
+ * Catch-all route for Single Page Application (SPA).
+ * Serves index.html for any unmatched route (client-side routing).
+ */
 app.use((req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
+  
+// ========================================================
+// SECTION 8: GLOBAL ERROR HANDLING & SERVER STARTUP
+// ========================================================
 
+/**
+ * Global error handling middleware.
+ * Catches any unhandled errors and sends a generic 500 response.
+ */
+app.use((err, req, res, next) => {
+  console.error("❌ Unhandled Server Error:", err.stack || err);
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: process.env.NODE_ENV === "development" ? err.message : undefined,
+  });
+});
 
-
-
-
-
-
-
-
-// ── START SERVER ──────────────────────────────────────
+// Start the server
 app.listen(PORT, () => {
-  console.log("");
-  console.log("🌾 ═══════════════════════════════════════");
-  console.log("   CropMind Server Running with Express!");
-  console.log(`   Open: http://localhost:3000`);
-  console.log("🌾 ═══════════════════════════════════════");
-  console.log("");
+  console.log(
+    "                                             ||═══════════════════════════════════════════════════||",
+  );
+  console.log(
+    "                                             ||                                                   ||",
+  );
+  console.log(
+    "                                             ||   CropMind Backend Server (Express Version)       ||",
+  );
+  console.log(
+    "                                             ||   Run: node server.js                             ||",
+  );
+  console.log(
+    "                                             ||   Opens at: http://localhost:3000                 ||",
+  );
+  console.log(
+    "                                             ||                                                   ||",
+  );
+  console.log(
+    "                                             ||═══════════════════════════════════════════════════||",
+  );
+  console.log("                                             ");
 });
