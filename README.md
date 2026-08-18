@@ -1,14 +1,14 @@
 # 🌾 CropMind — Smart AI Agriculture & Farmer Resource Hub
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live_App-brightgreen?style=for-the-badge&logo=render)](https://cropmind-app.onrender.com)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js_Express-blue?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
-[![Database](https://img.shields.io/badge/Database-MongoDB-green?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
-[![AI Integration](https://img.shields.io/badge/AI-Google_Gemini_Multimodal-orange?style=for-the-badge&logo=google)](https://aistudio.google.com/)
+[![Live Demo](https://cropmind-app.onrender.com)]
+[![Node.js](https://nodejs.org/)]
+[![Database](https://www.mongodb.com/)]
+[![AI Integration](https://aistudio.google.com/)]
   
 ## 🌐 Live Application Link
 
 Access the live production deployment of CropMind here:  
-👉 **[Launch CropMind Live App](https://cropmind-app.onrender.com)** _(Replace with your actual deployment URL)_
+👉 **[Launch CropMind Live App](https://cropmind-app.onrender.com)**
 
 ## 🏗️ System Architecture & Data Flow Diagram
 
