@@ -34,8 +34,9 @@ CropMind follows a robust, decoupled architecture separating the lightweight Gla
                  │        (server.js)        │                         │   (Token Authentication) │
                  └─────────────┬─────────────┘                         └─────────────┬────────────┘
                                │                                                     │
-                   ┌───────────┴───────────┐                               ┌─────────┴───────────┐
-                   ▼                       ▼                               ▼                     ▼
+                               │                                                     │
+                   ┌───────────┴───────────┐                                         ┴
+                   ▼                       ▼                                         ▼
            ┌───────────────┐       ┌───────────────┐                           ┌──────────────┐
            │  GEMINI AI    │       │   MONGODB     │◄──────────────────────────┤ TOKEN VERIFY │
            │ Vision / Text │       │ Database Sync │         User Data         │ & USER SYNC  │
